@@ -1,0 +1,242 @@
+2025-10-16 16:42:00,604 - INFO - Application initialized successfully
+2025-10-16 16:42:08,947 - INFO - User started application from welcome screen
+2025-10-16 16:42:11,533 - INFO - User started application from welcome screen
+2025-10-16 17:50:16,080 - INFO - Application initialized successfully
+2025-10-16 17:50:18,562 - INFO - User started application from welcome screen
+2025-10-16 17:50:24,011 - INFO - Main menu card clicked: it_support
+2025-10-16 18:12:17,770 - INFO - Application initialized successfully
+2025-10-16 18:12:19,393 - INFO - User started application from welcome screen
+2025-10-16 18:12:31,431 - INFO - Main menu card clicked: check_system
+2025-10-16 18:24:45,062 - INFO - Application initialized successfully
+2025-10-16 18:24:47,023 - INFO - User started application from welcome screen
+2025-10-16 18:24:50,060 - INFO - Main menu card clicked: check_system
+2025-10-16 18:29:30,328 - INFO - Application initialized successfully
+2025-10-16 18:29:36,248 - INFO - User started application from welcome screen
+2025-10-16 18:29:39,173 - INFO - Main menu card clicked: check_system
+2025-10-16 18:29:39,654 - INFO - GPUtil imported successfully
+2025-10-16 18:29:39,659 - INFO - SystemInfoFrame initialized
+2025-10-16 18:29:39,660 - INFO - Setting up System Info UI
+2025-10-16 18:29:39,686 - INFO - System Info UI setup complete
+2025-10-16 18:29:39,686 - INFO - Starting to populate system information
+2025-10-16 18:29:39,686 - INFO - Gathering system information...
+2025-10-16 18:29:39,753 - INFO - System information gathering complete
+2025-10-16 18:29:39,754 - INFO - System info gathered: 6 categories
+2025-10-16 18:29:39,754 - INFO - Displaying category: CPU with 6 items
+2025-10-16 18:29:39,766 - INFO - Displaying category: Memory with 4 items
+2025-10-16 18:29:39,775 - INFO - Displaying category: Disks with 1 items
+2025-10-16 18:29:39,778 - INFO - Displaying category: GPU with 1 items
+2025-10-16 18:29:39,783 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 18:29:39,792 - INFO - Displaying category: Network with 2 items
+2025-10-16 18:29:39,798 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 18:37:45,502 - INFO - Application initialized successfully
+2025-10-16 18:37:47,125 - INFO - User started application from welcome screen
+2025-10-16 18:38:36,741 - INFO - Application initialized successfully
+2025-10-16 18:38:38,054 - INFO - User started application from welcome screen
+2025-10-16 18:39:19,937 - INFO - Application initialized successfully
+2025-10-16 18:39:21,209 - INFO - User started application from welcome screen
+2025-10-16 18:39:24,104 - INFO - Main menu card clicked: check_system
+2025-10-16 18:39:24,502 - INFO - GPUtil imported successfully
+2025-10-16 18:39:24,508 - INFO - SystemInfoFrame initialized
+2025-10-16 18:39:24,509 - INFO - Setting up System Info UI
+2025-10-16 18:39:24,533 - INFO - System Info UI setup complete
+2025-10-16 18:39:24,534 - INFO - Starting to populate system information
+2025-10-16 18:39:24,534 - INFO - Gathering system information...
+2025-10-16 18:39:24,604 - INFO - System information gathering complete
+2025-10-16 18:39:24,605 - INFO - System info gathered: 6 categories
+2025-10-16 18:39:24,605 - INFO - Displaying category: CPU with 6 items
+2025-10-16 18:39:24,616 - INFO - Displaying category: Memory with 4 items
+2025-10-16 18:39:24,625 - INFO - Displaying category: Disks with 1 items
+2025-10-16 18:39:24,628 - INFO - Displaying category: GPU with 1 items
+2025-10-16 18:39:24,632 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 18:39:24,642 - INFO - Displaying category: Network with 2 items
+2025-10-16 18:39:24,646 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 18:39:38,383 - INFO - Application initialized successfully
+2025-10-16 18:39:39,571 - INFO - User started application from welcome screen
+2025-10-16 18:39:42,117 - INFO - Main menu card clicked: it_support
+2025-10-16 18:45:25,467 - INFO - Application initialized successfully
+2025-10-16 18:45:26,631 - INFO - User started application from welcome screen
+2025-10-16 18:45:30,368 - INFO - Main menu card clicked: it_support
+2025-10-16 18:45:44,809 - INFO - Cleared temporary files
+2025-10-16 18:45:45,989 - INFO - Opened Task Manager
+2025-10-16 18:45:55,754 - INFO - Opened Startup Programs
+2025-10-16 18:46:11,729 - INFO - Started MRT scan
+2025-10-16 18:47:19,886 - INFO - Checked running processes
+2025-10-16 18:48:22,861 - INFO - User started application from welcome screen
+2025-10-16 18:48:24,667 - INFO - Main menu card clicked: developer
+2025-10-16 18:53:38,544 - INFO - Application initialized successfully
+2025-10-16 18:53:42,459 - INFO - User started application from welcome screen
+2025-10-16 18:53:44,875 - INFO - Main menu card clicked: it_support
+2025-10-16 18:53:51,250 - INFO - Opened Startup Programs
+2025-10-16 18:54:06,096 - INFO - Main menu card clicked: check_system
+2025-10-16 18:54:06,494 - INFO - GPUtil imported successfully
+2025-10-16 18:54:06,499 - INFO - SystemInfoFrame initialized
+2025-10-16 18:54:06,499 - INFO - Setting up System Info UI
+2025-10-16 18:54:06,518 - INFO - System Info UI setup complete
+2025-10-16 18:54:06,519 - INFO - Starting to populate system information
+2025-10-16 18:54:06,519 - INFO - Gathering system information...
+2025-10-16 18:54:06,594 - INFO - System information gathering complete
+2025-10-16 18:54:06,595 - INFO - System info gathered: 6 categories
+2025-10-16 18:54:06,595 - INFO - Displaying category: CPU with 6 items
+2025-10-16 18:54:06,606 - INFO - Displaying category: Memory with 4 items
+2025-10-16 18:54:06,617 - INFO - Displaying category: Disks with 1 items
+2025-10-16 18:54:06,621 - INFO - Displaying category: GPU with 1 items
+2025-10-16 18:54:06,625 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 18:54:06,634 - INFO - Displaying category: Network with 2 items
+2025-10-16 18:54:06,640 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 18:54:11,794 - INFO - Main menu card clicked: developer
+2025-10-16 18:54:39,322 - INFO - Application initialized successfully
+2025-10-16 18:54:40,196 - INFO - User started application from welcome screen
+2025-10-16 18:54:42,248 - INFO - Main menu card clicked: check_system
+2025-10-16 18:54:42,665 - INFO - GPUtil imported successfully
+2025-10-16 18:54:42,672 - INFO - SystemInfoFrame initialized
+2025-10-16 18:54:42,673 - INFO - Setting up System Info UI
+2025-10-16 18:54:42,705 - INFO - System Info UI setup complete
+2025-10-16 18:54:42,705 - INFO - Starting to populate system information
+2025-10-16 18:54:42,706 - INFO - Gathering system information...
+2025-10-16 18:54:42,778 - INFO - System information gathering complete
+2025-10-16 18:54:42,779 - INFO - System info gathered: 6 categories
+2025-10-16 18:54:42,779 - INFO - Displaying category: CPU with 6 items
+2025-10-16 18:54:42,791 - INFO - Displaying category: Memory with 4 items
+2025-10-16 18:54:42,800 - INFO - Displaying category: Disks with 1 items
+2025-10-16 18:54:42,804 - INFO - Displaying category: GPU with 1 items
+2025-10-16 18:54:42,808 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 18:54:42,818 - INFO - Displaying category: Network with 2 items
+2025-10-16 18:54:42,824 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 18:54:48,687 - INFO - Main menu card clicked: it_support
+2025-10-16 18:54:54,772 - INFO - Main menu card clicked: it_support
+2025-10-16 18:55:01,653 - INFO - Main menu card clicked: it_support
+2025-10-16 18:55:11,785 - INFO - Main menu card clicked: check_system
+2025-10-16 18:55:11,817 - INFO - SystemInfoFrame initialized
+2025-10-16 18:55:11,818 - INFO - Setting up System Info UI
+2025-10-16 18:55:11,832 - INFO - System Info UI setup complete
+2025-10-16 18:55:11,833 - INFO - Starting to populate system information
+2025-10-16 18:55:11,833 - INFO - Gathering system information...
+2025-10-16 18:55:11,847 - INFO - System information gathering complete
+2025-10-16 18:55:11,847 - INFO - System info gathered: 6 categories
+2025-10-16 18:55:11,848 - INFO - Displaying category: CPU with 6 items
+2025-10-16 18:55:11,859 - INFO - Displaying category: Memory with 4 items
+2025-10-16 18:55:11,866 - INFO - Displaying category: Disks with 1 items
+2025-10-16 18:55:11,870 - INFO - Displaying category: GPU with 1 items
+2025-10-16 18:55:11,874 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 18:55:11,884 - INFO - Displaying category: Network with 2 items
+2025-10-16 18:55:11,889 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 18:55:14,787 - INFO - Main menu card clicked: developer
+2025-10-16 19:04:13,795 - INFO - Application initialized successfully
+2025-10-16 19:04:15,744 - INFO - User started application from welcome screen
+2025-10-16 19:04:20,603 - INFO - Main menu card clicked: check_system
+2025-10-16 19:04:21,005 - INFO - GPUtil imported successfully
+2025-10-16 19:04:21,012 - INFO - SystemInfoFrame initialized
+2025-10-16 19:04:21,012 - INFO - Setting up System Info UI
+2025-10-16 19:04:21,037 - INFO - System Info UI setup complete
+2025-10-16 19:04:21,038 - INFO - Starting to populate system information
+2025-10-16 19:04:21,038 - INFO - Gathering system information...
+2025-10-16 19:04:21,106 - INFO - System information gathering complete
+2025-10-16 19:04:21,107 - INFO - System info gathered: 6 categories
+2025-10-16 19:04:21,107 - INFO - Displaying category: CPU with 6 items
+2025-10-16 19:04:21,119 - INFO - Displaying category: Memory with 4 items
+2025-10-16 19:04:21,127 - INFO - Displaying category: Disks with 1 items
+2025-10-16 19:04:21,130 - INFO - Displaying category: GPU with 1 items
+2025-10-16 19:04:21,135 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 19:04:21,144 - INFO - Displaying category: Network with 2 items
+2025-10-16 19:04:21,149 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 19:04:25,469 - INFO - Main menu card clicked: developer
+2025-10-16 19:04:58,880 - INFO - Main menu card clicked: developer
+2025-10-16 19:10:58,767 - INFO - Icon file not found, using default
+2025-10-16 19:10:59,050 - INFO - Application initialized successfully
+2025-10-16 19:11:11,740 - INFO - User started application from welcome screen
+2025-10-16 19:11:16,037 - INFO - Main menu card clicked: it_support
+2025-10-16 19:11:25,481 - INFO - Cleared temporary files
+2025-10-16 19:11:27,956 - INFO - Opened Task Manager
+2025-10-16 19:11:39,526 - INFO - Icon file not found, using default
+2025-10-16 19:11:39,803 - INFO - Application initialized successfully
+2025-10-16 19:11:41,364 - INFO - User started application from welcome screen
+2025-10-16 19:11:47,513 - INFO - Main menu card clicked: it_support
+2025-10-16 19:11:53,234 - INFO - Started Disk Cleanup
+2025-10-16 19:12:33,370 - INFO - GPUtil imported successfully
+2025-10-16 19:12:33,375 - INFO - SystemInfoFrame initialized
+2025-10-16 19:12:33,375 - INFO - Setting up System Info UI
+2025-10-16 19:12:33,389 - INFO - System Info UI setup complete
+2025-10-16 19:12:33,389 - INFO - Starting to populate system information
+2025-10-16 19:12:33,389 - INFO - Gathering system information...
+2025-10-16 19:12:33,458 - INFO - System information gathering complete
+2025-10-16 19:12:33,458 - INFO - System info gathered: 6 categories
+2025-10-16 19:12:33,459 - INFO - Displaying category: CPU with 6 items
+2025-10-16 19:12:33,471 - INFO - Displaying category: Memory with 4 items
+2025-10-16 19:12:33,479 - INFO - Displaying category: Disks with 1 items
+2025-10-16 19:12:33,483 - INFO - Displaying category: GPU with 1 items
+2025-10-16 19:12:33,486 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 19:12:33,497 - INFO - Displaying category: Network with 2 items
+2025-10-16 19:12:33,508 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 19:12:43,594 - INFO - Started Network Troubleshooter
+2025-10-16 19:13:11,743 - ERROR - System config error: [WinError 740] The requested operation requires elevation
+2025-10-16 19:13:19,901 - INFO - Main menu card clicked: check_system
+2025-10-16 19:13:19,931 - INFO - SystemInfoFrame initialized
+2025-10-16 19:13:19,931 - INFO - Setting up System Info UI
+2025-10-16 19:13:19,946 - INFO - System Info UI setup complete
+2025-10-16 19:13:19,947 - INFO - Starting to populate system information
+2025-10-16 19:13:19,947 - INFO - Gathering system information...
+2025-10-16 19:13:19,963 - INFO - System information gathering complete
+2025-10-16 19:13:19,963 - INFO - System info gathered: 6 categories
+2025-10-16 19:13:19,964 - INFO - Displaying category: CPU with 6 items
+2025-10-16 19:13:19,974 - INFO - Displaying category: Memory with 4 items
+2025-10-16 19:13:19,982 - INFO - Displaying category: Disks with 1 items
+2025-10-16 19:13:19,986 - INFO - Displaying category: GPU with 1 items
+2025-10-16 19:13:19,990 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 19:13:19,999 - INFO - Displaying category: Network with 2 items
+2025-10-16 19:13:20,005 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 19:13:24,691 - INFO - Main menu card clicked: developer
+2025-10-16 19:17:24,398 - INFO - Successfully installed: google.chrome
+2025-10-16 19:19:19,652 - INFO - Main menu card clicked: it_support
+2025-10-16 19:19:52,249 - INFO - SystemInfoFrame initialized
+2025-10-16 19:19:52,249 - INFO - Setting up System Info UI
+2025-10-16 19:19:52,262 - INFO - System Info UI setup complete
+2025-10-16 19:19:52,262 - INFO - Starting to populate system information
+2025-10-16 19:19:52,262 - INFO - Gathering system information...
+2025-10-16 19:19:52,277 - INFO - System information gathering complete
+2025-10-16 19:19:52,278 - INFO - System info gathered: 6 categories
+2025-10-16 19:19:52,278 - INFO - Displaying category: CPU with 6 items
+2025-10-16 19:19:52,290 - INFO - Displaying category: Memory with 4 items
+2025-10-16 19:19:52,298 - INFO - Displaying category: Disks with 1 items
+2025-10-16 19:19:52,302 - INFO - Displaying category: GPU with 1 items
+2025-10-16 19:19:52,306 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 19:19:52,315 - INFO - Displaying category: Network with 2 items
+2025-10-16 19:19:52,320 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 19:20:19,974 - ERROR - System config error: [WinError 740] The requested operation requires elevation
+2025-10-16 19:21:57,863 - INFO - Main menu card clicked: developer
+2025-10-16 19:24:37,121 - INFO - User started application from welcome screen
+2025-10-16 19:24:39,284 - INFO - Main menu card clicked: it_support
+2025-10-16 19:26:09,278 - INFO - User started application from welcome screen
+2025-10-16 19:37:48,259 - INFO - Icon file not found, using default
+2025-10-16 19:37:48,533 - INFO - Application initialized successfully
+2025-10-16 19:38:07,936 - INFO - User started application from welcome screen
+2025-10-16 19:40:24,480 - INFO - Main menu card clicked: it_support
+2025-10-16 19:40:52,818 - ERROR - System config error: [WinError 740] The requested operation requires elevation
+2025-10-16 19:42:12,534 - INFO - Main menu card clicked: developer
+2025-10-16 20:09:25,678 - INFO - Icon file not found, using default
+2025-10-16 20:09:25,976 - INFO - dev_Ale application initialized successfully
+2025-10-16 20:09:35,428 - INFO - User started dev_Ale from welcome screen
+2025-10-16 20:09:45,134 - INFO - Main menu card clicked: it_support
+2025-10-16 20:09:49,460 - INFO - Main menu card clicked: check_system
+2025-10-16 20:09:49,901 - INFO - GPUtil imported successfully
+2025-10-16 20:09:49,907 - INFO - SystemInfoFrame initialized
+2025-10-16 20:09:49,908 - INFO - Setting up System Info UI
+2025-10-16 20:09:49,924 - INFO - System Info UI setup complete
+2025-10-16 20:09:49,925 - INFO - Starting to populate system information
+2025-10-16 20:09:49,925 - INFO - Gathering system information...
+2025-10-16 20:09:50,000 - INFO - System information gathering complete
+2025-10-16 20:09:50,001 - INFO - System info gathered: 6 categories
+2025-10-16 20:09:50,001 - INFO - Displaying category: CPU with 6 items
+2025-10-16 20:09:50,012 - INFO - Displaying category: Memory with 4 items
+2025-10-16 20:09:50,022 - INFO - Displaying category: Disks with 1 items
+2025-10-16 20:09:50,026 - INFO - Displaying category: GPU with 1 items
+2025-10-16 20:09:50,030 - INFO - Displaying category: Operating System with 5 items
+2025-10-16 20:09:50,040 - INFO - Displaying category: Network with 2 items
+2025-10-16 20:09:50,045 - INFO - Finished populating system info. Total rows: 31
+2025-10-16 20:09:56,348 - INFO - Main menu card clicked: developer
+2025-10-16 20:10:00,404 - INFO - Main menu card clicked: it_support
+2025-10-16 20:10:02,648 - INFO - Opened System Configuration
+2025-10-16 20:10:38,805 - INFO - Icon file not found, using default
+2025-10-16 20:10:39,098 - INFO - dev_Ale application initialized successfully
+2025-10-16 20:10:40,388 - INFO - User started dev_Ale from welcome screen
+2025-10-16 20:10:42,708 - INFO - Main menu card clicked: developer
+2025-10-16 20:12:07,213 - ERROR - Failed to install google.chrome: 

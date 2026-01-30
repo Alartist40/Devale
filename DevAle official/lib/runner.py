@@ -85,32 +85,17 @@ class CommandRunner:
             self.log(f"CMD: {shell_cmd}")
 
             process = subprocess.Popen(
-                shell_cmd,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT, # Merge stderr to stdout
-                text=False, # Read bytes to handle encoding manually
-                bufsize=1   # Line buffering
+                shell_cmd, shell=True, stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT, text=False, bufsize=-1
             )
-
             captured_output = []
-            
-            # Stream output
-            for line in iter(process.stdout.readline, b''):
-                try:
-                    # Windows usually uses CP437 or CP850 for console output, but Python defaults to utf-8
-                    # We try utf-8 first, then cp850, then replace
-                    decoded_line = line.decode('utf-8').strip()
-                except UnicodeDecodeError:
-                    try:
-                        decoded_line = line.decode('cp850').strip()
-                    except:
-                        decoded_line = line.decode('utf-8', errors='replace').strip()
-                
-                if decoded_line:
-                    self.log(decoded_line)
-                    captured_output.append(decoded_line)
-
+            try:
+                for line in iter(process.stdout.readline, b''):
+                    decoded_line = self._decode_output(line)
+                    if decoded_line:
+                        self.log(decoded_line); captured_output.append(decoded_line)
+            finally:
+                process.stdout.close()
             process.wait(timeout=timeout)
             
             if process.returncode == 0:
@@ -126,6 +111,13 @@ class CommandRunner:
         except Exception as e:
             self.log(f"ERROR: {e}")
             return False, str(e)
+
+    def _decode_output(self, line_bytes):
+        """Handle Windows-specific encoding for console output"""
+        for enc in ['utf-8', 'cp850']:
+            try: return line_bytes.decode(enc).strip()
+            except UnicodeDecodeError: continue
+        return line_bytes.decode('utf-8', errors='replace').strip()
 
     def run_recipe(self, recipe_path, progress_callback=None):
         steps = self.load_commands(recipe_path)

@@ -96,7 +96,8 @@ class CommandRunner:
                         if decoded:
                             self.log(decoded)
                             captured_output.append(decoded)
-                except Exception: pass
+                except Exception as e:
+                    self.log(f"Reader error: {e}")
 
             thread = threading.Thread(target=reader, daemon=True)
             thread.start()
@@ -108,8 +109,10 @@ class CommandRunner:
                 self.log("TIMEOUT")
                 return False, "Command timed out"
             finally:
-                process.stdout.close()
                 thread.join(timeout=1)
+                process.stdout.close()
+                if thread.is_alive():
+                    thread.join()
             
             if process.returncode == 0:
                 self.log("SUCCESS")

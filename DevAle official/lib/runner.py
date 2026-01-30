@@ -89,14 +89,27 @@ class CommandRunner:
                 stderr=subprocess.STDOUT, text=False, bufsize=-1
             )
             captured_output = []
+            def reader():
+                try:
+                    for line in iter(process.stdout.readline, b''):
+                        decoded = self._decode_output(line)
+                        if decoded:
+                            self.log(decoded)
+                            captured_output.append(decoded)
+                except Exception: pass
+
+            thread = threading.Thread(target=reader, daemon=True)
+            thread.start()
             try:
-                for line in iter(process.stdout.readline, b''):
-                    decoded_line = self._decode_output(line)
-                    if decoded_line:
-                        self.log(decoded_line); captured_output.append(decoded_line)
+                process.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+                self.log("TIMEOUT")
+                return False, "Command timed out"
             finally:
                 process.stdout.close()
-            process.wait(timeout=timeout)
+                thread.join(timeout=1)
             
             if process.returncode == 0:
                 self.log("SUCCESS")
@@ -115,8 +128,11 @@ class CommandRunner:
     def _decode_output(self, line_bytes):
         """Handle Windows-specific encoding for console output"""
         for enc in ['utf-8', 'cp850']:
-            try: return line_bytes.decode(enc).strip()
-            except UnicodeDecodeError: continue
+            try:
+                decoded = line_bytes.decode(enc).strip()
+                return decoded
+            except UnicodeDecodeError:
+                continue
         return line_bytes.decode('utf-8', errors='replace').strip()
 
     def run_recipe(self, recipe_path, progress_callback=None):

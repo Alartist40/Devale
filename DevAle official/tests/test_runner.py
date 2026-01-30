@@ -13,3 +13,6 @@ class TestCommandRunner(unittest.TestCase):
         success, output = runner.run_step({'cmd': 'echo hello', 'tag': 'test', 'friendly': 'Test'})
         self.assertTrue(success)
         self.assertIn("hello", output)
+
+if __name__ == "__main__":
+    unittest.main()

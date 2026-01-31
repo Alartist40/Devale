@@ -1,5 +1,7 @@
 import logging
 import os
+import sys
+import ctypes
 import yaml
 import subprocess
 import threading
@@ -22,9 +24,6 @@ class CommandRunner:
 
     def run_as_admin(self, cmd_str):
         """Runs a command as administrator using ShellExecute"""
-        import ctypes
-        import sys
-        
         self.log(f"ELEVATING: {cmd_str}")
         try:
              # This will trigger UAC and run the command in a NEW window
@@ -58,13 +57,17 @@ class CommandRunner:
             return yaml.safe_load(f)
 
     def run_step(self, step, progress_callback=None):
+        """
+        Orchestrates the execution of a single command step.
+        Architectural Rationale: Separates step configuration and UI reporting
+        from the low-level process management to improve maintainability.
+        """
         cmd = step.get('cmd')
         tag = step.get('tag', 'unknown')
         friendly = step.get('friendly')
         timeout = step.get('timeout', 60)
         
         explanation = friendly if friendly else get_explanation(tag)
-        
         if progress_callback:
             progress_callback(explanation)
             
@@ -74,21 +77,24 @@ class CommandRunner:
             self.log(f"[DRY] {cmd}")
             return True, "Dry run"
 
-        try:
-            # Prepare command
-            shell_cmd = cmd
-            if isinstance(cmd, list):
-                # Join simple list commands for shell execution if needed, or pass list
-                # heuristic: prefer string for complex shell pipes
-                 shell_cmd = " ".join(cmd)
-            
-            self.log(f"CMD: {shell_cmd}")
+        shell_cmd = " ".join(cmd) if isinstance(cmd, list) else cmd
+        self.log(f"CMD: {shell_cmd}")
+        return self._execute_process(shell_cmd, timeout)
 
+    def _execute_process(self, shell_cmd, timeout):
+        """
+        Internal helper to execute a shell command and capture output.
+        Architectural Rationale: Encapsulates subprocess lifecycle management,
+        including real-time output streaming and timeout handling, into a
+        reusable private method.
+        """
+        try:
             process = subprocess.Popen(
                 shell_cmd, shell=True, stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT, text=False, bufsize=-1
             )
             captured_output = []
+
             def reader():
                 try:
                     for line in iter(process.stdout.readline, b''):
@@ -101,6 +107,7 @@ class CommandRunner:
 
             thread = threading.Thread(target=reader, daemon=True)
             thread.start()
+
             try:
                 process.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
@@ -114,16 +121,10 @@ class CommandRunner:
                 if thread.is_alive():
                     thread.join()
             
-            if process.returncode == 0:
-                self.log("SUCCESS")
-                return True, "\n".join(captured_output)
-            else:
-                self.log(f"FAILED (Code {process.returncode})")
-                return False, "\n".join(captured_output)
+            success = process.returncode == 0
+            self.log("SUCCESS" if success else f"FAILED (Code {process.returncode})")
+            return success, "\n".join(captured_output)
 
-        except subprocess.TimeoutExpired:
-            self.log("TIMEOUT")
-            return False, "Command timed out"
         except Exception as e:
             self.log(f"ERROR: {e}")
             return False, str(e)

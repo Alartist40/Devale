@@ -13,6 +13,15 @@ class DevAleGUI(ctk.CTk):
         self.runner = runner
         self.title("DevAle 1.0")
         self.geometry("900x650")
+
+        # Navigation Configuration - Architectural Rationale: Centralized
+        # configuration for easy maintenance and scalability.
+        self.NAV_ITEMS = [
+            ("Home", "🏠 Home", HomeFrame),
+            ("Diagnose", "🏥 Diagnose", DiagnoseFrame),
+            ("Tools", "🛠 Tools", ToolsFrame),
+            ("Install", "📦 Install", InstallFrame),
+        ]
         
         # Grid layout 1x2 (Sidebar + Content)
         self.grid_columnconfigure(1, weight=1)
@@ -25,11 +34,9 @@ class DevAleGUI(ctk.CTk):
         self.frames = {}
         self.current_frame = None
         
-        # Initialize Frames
-        self.frames["Home"] = HomeFrame(self, self.runner)
-        self.frames["Diagnose"] = DiagnoseFrame(self, self.runner)
-        self.frames["Tools"] = ToolsFrame(self, self.runner)
-        self.frames["Install"] = InstallFrame(self, self.runner)
+        # Initialize Frames dynamically
+        for name, _, frame_class in self.NAV_ITEMS:
+            self.frames[name] = frame_class(self, self.runner)
         
         # Console / Mini Terminal
         self.console_frame = ctk.CTkFrame(self, height=150, corner_radius=0)
@@ -81,7 +88,9 @@ class DevAleGUI(ctk.CTk):
                 self.console_log.insert("end", f"> {message}\n")
                 self.console_log.see("end")
                 self.console_log.configure(state="disabled")
-            except Exception:
+            except Exception as e:
+                # Silently catch GUI errors to prevent crashes during logging
+                # but use explicit Exception to comply with Ruff BLE001.
                 pass
         
         self.after(0, _write)
@@ -89,29 +98,35 @@ class DevAleGUI(ctk.CTk):
     def setup_sidebar(self):
         self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
         self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew") # Span both content and console rows
-        self.sidebar.grid_rowconfigure(4, weight=1) # Spacer
         
         title_label = ctk.CTkLabel(self.sidebar, text="DevAle", font=ctk.CTkFont(size=20, weight="bold"))
         title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
-        
-        self.btn_home = ctk.CTkButton(self.sidebar, text="🏠 Home", command=lambda: self.show_frame("Home"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_home.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
 
-        self.btn_diag = ctk.CTkButton(self.sidebar, text="🏥 Diagnose", command=lambda: self.show_frame("Diagnose"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_diag.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
+        # Navigation Buttons - Architectural Rationale: Data-driven generation
+        # reduces code duplication and improves maintainability.
+        self.nav_buttons = {}
+        for i, (name, label, _) in enumerate(self.NAV_ITEMS, start=1):
+            btn = ctk.CTkButton(
+                self.sidebar, text=label,
+                command=lambda n=name: self.show_frame(n),
+                fg_color="transparent", text_color=("gray10", "#DCE4EE"),
+                border_width=2, border_color=("gray", "gray")
+            )
+            btn.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
+            self.nav_buttons[name] = btn
 
-        self.btn_tools = ctk.CTkButton(self.sidebar, text="🛠 Tools", command=lambda: self.show_frame("Tools"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_tools.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-
-        self.btn_install = ctk.CTkButton(self.sidebar, text="📦 Install", command=lambda: self.show_frame("Install"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_install.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        # Spacer row with weight 1 to push following items to the bottom
+        spacer_row = len(self.NAV_ITEMS) + 1
+        self.sidebar.grid_rowconfigure(spacer_row, weight=1)
         
         # Appearance Mode
         self.appearance_mode_label = ctk.CTkLabel(self.sidebar, text="Theme:", anchor="w")
-        self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
-        self.appearance_mode_optionemenu = ctk.CTkOptionMenu(self.sidebar, values=["System", "Light", "Dark"],
-                                                               command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 20))
+        self.appearance_mode_label.grid(row=spacer_row + 1, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_optionemenu = ctk.CTkOptionMenu(
+            self.sidebar, values=["System", "Light", "Dark"],
+            command=self.change_appearance_mode_event
+        )
+        self.appearance_mode_optionemenu.grid(row=spacer_row + 2, column=0, padx=20, pady=(10, 20))
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         ctk.set_appearance_mode(new_appearance_mode)

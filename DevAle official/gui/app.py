@@ -6,6 +6,15 @@ from .frames.install import InstallFrame
 import os
 import sys
 
+# Architectural Rationale: Centralized navigation configuration
+# reduces redundancy and simplifies scaling the UI with new modules.
+NAV_ITEMS = [
+    ("Home", "🏠 Home", HomeFrame),
+    ("Diagnose", "🏥 Diagnose", DiagnoseFrame),
+    ("Tools", "🛠 Tools", ToolsFrame),
+    ("Install", "📦 Install", InstallFrame),
+]
+
 class DevAleGUI(ctk.CTk):
     def __init__(self, runner):
         super().__init__()
@@ -19,17 +28,15 @@ class DevAleGUI(ctk.CTk):
         self.grid_rowconfigure(0, weight=1) # Content
         self.grid_rowconfigure(1, weight=0) # Console (fixed height)
         
-        self.setup_sidebar()
-        
         # Frames container
         self.frames = {}
         self.current_frame = None
         
-        # Initialize Frames
-        self.frames["Home"] = HomeFrame(self, self.runner)
-        self.frames["Diagnose"] = DiagnoseFrame(self, self.runner)
-        self.frames["Tools"] = ToolsFrame(self, self.runner)
-        self.frames["Install"] = InstallFrame(self, self.runner)
+        # Dynamic Frame Initialization
+        for name, _, frame_class in NAV_ITEMS:
+            self.frames[name] = frame_class(self, self.runner)
+
+        self.setup_sidebar()
         
         # Console / Mini Terminal
         self.console_frame = ctk.CTkFrame(self, height=150, corner_radius=0)
@@ -69,49 +76,47 @@ class DevAleGUI(ctk.CTk):
                 # Spam filter: Don't print "Verification x%" lines repeatedly
                 msg_str = str(message)
                 if "Verification" in msg_str and "%" in msg_str:
-                    # Optional: update last line instead of appending? 
-                    # For now, just skip every other one or ignore if identical to last?
-                    # Simply reducing spam: if it contains "Verification", skip it entirely or print only 10% increments?
-                    # Let's just skip it to keep console clean for now, as user requested "no loop".
-                    # Better: Print only 0%, 50%, 100%? 
-                    # User said "don't want it to print out all the time creating a loop".
                     return
 
                 self.console_log.configure(state="normal")
                 self.console_log.insert("end", f"> {message}\n")
                 self.console_log.see("end")
                 self.console_log.configure(state="disabled")
-            except Exception:
-                pass
+            except Exception as e:
+                # Silent failure to avoid recursive logging if UI is closing
+                _ = e
         
         self.after(0, _write)
 
     def setup_sidebar(self):
         self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
-        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew") # Span both content and console rows
-        self.sidebar.grid_rowconfigure(4, weight=1) # Spacer
+        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew")
         
         title_label = ctk.CTkLabel(self.sidebar, text="DevAle", font=ctk.CTkFont(size=20, weight="bold"))
         title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         
-        self.btn_home = ctk.CTkButton(self.sidebar, text="🏠 Home", command=lambda: self.show_frame("Home"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_home.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # Dynamic Button Generation
+        self.nav_buttons = {}
+        for i, (name, label, _) in enumerate(NAV_ITEMS, start=1):
+            btn = ctk.CTkButton(
+                self.sidebar, text=label,
+                command=lambda n=name: self.show_frame(n),
+                fg_color="transparent", text_color=("gray10", "#DCE4EE"),
+                border_width=2, border_color=("gray", "gray")
+            )
+            btn.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
+            self.nav_buttons[name] = btn
 
-        self.btn_diag = ctk.CTkButton(self.sidebar, text="🏥 Diagnose", command=lambda: self.show_frame("Diagnose"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_diag.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
-        self.btn_tools = ctk.CTkButton(self.sidebar, text="🛠 Tools", command=lambda: self.show_frame("Tools"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_tools.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-
-        self.btn_install = ctk.CTkButton(self.sidebar, text="📦 Install", command=lambda: self.show_frame("Install"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_install.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        # Spacer
+        spacer_row = len(NAV_ITEMS) + 1
+        self.sidebar.grid_rowconfigure(spacer_row, weight=1)
         
         # Appearance Mode
         self.appearance_mode_label = ctk.CTkLabel(self.sidebar, text="Theme:", anchor="w")
-        self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_label.grid(row=spacer_row + 1, column=0, padx=20, pady=(10, 0))
         self.appearance_mode_optionemenu = ctk.CTkOptionMenu(self.sidebar, values=["System", "Light", "Dark"],
                                                                command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 20))
+        self.appearance_mode_optionemenu.grid(row=spacer_row + 2, column=0, padx=20, pady=(10, 20))
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         ctk.set_appearance_mode(new_appearance_mode)

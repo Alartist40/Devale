@@ -87,31 +87,31 @@ class DevAleGUI(ctk.CTk):
         self.after(0, _write)
 
     def setup_sidebar(self):
+        """
+        Architectural Rationale: Uses a data-driven approach to generate navigation
+        buttons, reducing duplication and improving maintainability.
+        """
         self.sidebar = ctk.CTkFrame(self, width=200, corner_radius=0)
-        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew") # Span both content and console rows
-        self.sidebar.grid_rowconfigure(4, weight=1) # Spacer
+        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="nsew")
         
         title_label = ctk.CTkLabel(self.sidebar, text="DevAle", font=ctk.CTkFont(size=20, weight="bold"))
         title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         
-        self.btn_home = ctk.CTkButton(self.sidebar, text="🏠 Home", command=lambda: self.show_frame("Home"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_home.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        # Define navigation items
+        nav = [("🏠 Home", "Home"), ("🏥 Diagnose", "Diagnose"), ("🛠 Tools", "Tools"), ("📦 Install", "Install")]
+        for i, (label, name) in enumerate(nav, start=1):
+            btn = ctk.CTkButton(self.sidebar, text=label, command=lambda n=name: self.show_frame(n), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
+            btn.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
 
-        self.btn_diag = ctk.CTkButton(self.sidebar, text="🏥 Diagnose", command=lambda: self.show_frame("Diagnose"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_diag.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-
-        self.btn_tools = ctk.CTkButton(self.sidebar, text="🛠 Tools", command=lambda: self.show_frame("Tools"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_tools.grid(row=3, column=0, padx=20, pady=10, sticky="ew")
-
-        self.btn_install = ctk.CTkButton(self.sidebar, text="📦 Install", command=lambda: self.show_frame("Install"), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
-        self.btn_install.grid(row=4, column=0, padx=20, pady=10, sticky="ew")
+        # Spacer pushes theme selector to the bottom
+        self.sidebar.grid_rowconfigure(len(nav) + 1, weight=1)
         
         # Appearance Mode
         self.appearance_mode_label = ctk.CTkLabel(self.sidebar, text="Theme:", anchor="w")
-        self.appearance_mode_label.grid(row=5, column=0, padx=20, pady=(10, 0))
+        self.appearance_mode_label.grid(row=len(nav) + 2, column=0, padx=20, pady=(10, 0))
         self.appearance_mode_optionemenu = ctk.CTkOptionMenu(self.sidebar, values=["System", "Light", "Dark"],
                                                                command=self.change_appearance_mode_event)
-        self.appearance_mode_optionemenu.grid(row=6, column=0, padx=20, pady=(10, 20))
+        self.appearance_mode_optionemenu.grid(row=len(nav) + 3, column=0, padx=20, pady=(10, 20))
 
     def change_appearance_mode_event(self, new_appearance_mode: str):
         ctk.set_appearance_mode(new_appearance_mode)

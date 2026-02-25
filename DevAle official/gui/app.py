@@ -103,6 +103,7 @@ class DevAleGUI(ctk.CTk):
         title_label.grid(row=0, column=0, padx=20, pady=(20, 10))
         
         # Define navigation items
+        self.nav_buttons = {}
         nav = [("🏠 Home", "Home"), ("🏥 Diagnose", "Diagnose"), ("🛠 Tools", "Tools"), ("📦 Install", "Install")]
         for i, (label, name) in enumerate(nav, start=1):
             btn = ctk.CTkButton(
@@ -139,8 +140,16 @@ class DevAleGUI(ctk.CTk):
         self.current_frame = frame
 
         # Update sidebar button highlighting
+<<<<<<< palette/navigation-highlighting-17953901055037944356
+        for btn_name, btn in self.nav_buttons.items():
+            if btn_name == name:
+                btn.configure(fg_color=None, text_color=None)
+            else:
+                btn.configure(fg_color="transparent", text_color=("gray10", "#DCE4EE"))
+=======
         for button_name, button in self.nav_buttons.items():
             if button_name == name:
                 button.configure(fg_color=None, text_color=None)
             else:
                 button.configure(fg_color=self.NAV_INACTIVE_FG, text_color=self.NAV_INACTIVE_TEXT)
+>>>>>>> main

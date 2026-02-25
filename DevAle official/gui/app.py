@@ -41,8 +41,24 @@ class DevAleGUI(ctk.CTk):
         self.console_frame.grid(row=1, column=1, sticky="nsew", padx=0, pady=0)
         self.console_frame.grid_propagate(False) # Fixed height
         
-        self.console_label = ctk.CTkLabel(self.console_frame, text="System Console", font=ctk.CTkFont(size=12, weight="bold"))
-        self.console_label.pack(side="top", anchor="w", padx=5, pady=2)
+        # Console Header with Label and Clear Button
+        self.console_header = ctk.CTkFrame(self.console_frame, fg_color="transparent")
+        self.console_header.pack(side="top", fill="x", padx=5, pady=2)
+
+        self.console_label = ctk.CTkLabel(self.console_header, text="System Console", font=ctk.CTkFont(size=12, weight="bold"))
+        self.console_label.pack(side="left")
+
+        self.clear_btn = ctk.CTkButton(
+            self.console_header,
+            text="Clear",
+            width=60,
+            height=20,
+            font=ctk.CTkFont(size=11),
+            fg_color="#4A4A4A",
+            hover_color="#606060",
+            command=self.clear_console
+        )
+        self.clear_btn.pack(side="right")
         
         self.console_log = ctk.CTkTextbox(self.console_frame, font=ctk.CTkFont(family="Consolas", size=12))
         self.console_log.pack(side="top", fill="both", expand=True, padx=5, pady=(5, 0))
@@ -66,6 +82,12 @@ class DevAleGUI(ctk.CTk):
         if cmd.strip():
             self.input_entry.delete(0, 'end')
             self.runner.run_interactive_cmd(cmd)
+
+    def clear_console(self):
+        """Clears the system console logs"""
+        self.console_log.configure(state="normal")
+        self.console_log.delete("1.0", "end")
+        self.console_log.configure(state="disabled")
 
     def log(self, message):
         """Thread-safe logging with filtering"""
@@ -140,16 +162,8 @@ class DevAleGUI(ctk.CTk):
         self.current_frame = frame
 
         # Update sidebar button highlighting
-<<<<<<< palette/navigation-highlighting-17953901055037944356
-        for btn_name, btn in self.nav_buttons.items():
-            if btn_name == name:
-                btn.configure(fg_color=None, text_color=None)
-            else:
-                btn.configure(fg_color="transparent", text_color=("gray10", "#DCE4EE"))
-=======
         for button_name, button in self.nav_buttons.items():
             if button_name == name:
                 button.configure(fg_color=None, text_color=None)
             else:
                 button.configure(fg_color=self.NAV_INACTIVE_FG, text_color=self.NAV_INACTIVE_TEXT)
->>>>>>> main

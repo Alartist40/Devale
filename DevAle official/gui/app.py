@@ -7,6 +7,10 @@ import os
 import sys
 
 class DevAleGUI(ctk.CTk):
+    # Styling Constants for Sidebar
+    NAV_INACTIVE_FG = "transparent"
+    NAV_INACTIVE_TEXT = ("gray10", "#DCE4EE")
+
     def __init__(self, runner):
         super().__init__()
         
@@ -23,6 +27,7 @@ class DevAleGUI(ctk.CTk):
         
         # Frames container
         self.frames = {}
+        self.nav_buttons = {}
         self.current_frame = None
         
         # Initialize Frames
@@ -100,8 +105,17 @@ class DevAleGUI(ctk.CTk):
         # Define navigation items
         nav = [("🏠 Home", "Home"), ("🏥 Diagnose", "Diagnose"), ("🛠 Tools", "Tools"), ("📦 Install", "Install")]
         for i, (label, name) in enumerate(nav, start=1):
-            btn = ctk.CTkButton(self.sidebar, text=label, command=lambda n=name: self.show_frame(n), fg_color="transparent", text_color=("gray10", "#DCE4EE"), border_width=2, border_color=("gray", "gray"))
+            btn = ctk.CTkButton(
+                self.sidebar,
+                text=label,
+                command=lambda n=name: self.show_frame(n),
+                fg_color=self.NAV_INACTIVE_FG,
+                text_color=self.NAV_INACTIVE_TEXT,
+                border_width=2,
+                border_color=("gray", "gray")
+            )
             btn.grid(row=i, column=0, padx=20, pady=10, sticky="ew")
+            self.nav_buttons[name] = btn
 
         # Spacer pushes theme selector to the bottom
         self.sidebar.grid_rowconfigure(len(nav) + 1, weight=1)
@@ -123,3 +137,10 @@ class DevAleGUI(ctk.CTk):
         frame = self.frames[name]
         frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         self.current_frame = frame
+
+        # Update sidebar button highlighting
+        for button_name, button in self.nav_buttons.items():
+            if button_name == name:
+                button.configure(fg_color=None, text_color=None)
+            else:
+                button.configure(fg_color=self.NAV_INACTIVE_FG, text_color=self.NAV_INACTIVE_TEXT)

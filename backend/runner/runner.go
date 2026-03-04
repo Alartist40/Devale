@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -66,6 +67,19 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 	scanner := bufio.NewScanner(rdr)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		// Filter out Windows shell noise
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		// Skip copyright and version headers
+		if strings.Contains(line, "Microsoft Windows [Version") ||
+		   strings.Contains(line, "(c) Microsoft Corporation") ||
+		   strings.Contains(line, "Microsoft (R) Windows (R)") {
+			continue
+		}
+
 		wailsRuntime.EventsEmit(r.ctx, "terminal:output", line)
 	}
 }
@@ -106,8 +120,10 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.mof *.mfl ^| findstr /v /i \"uninstall\"') do mofcomp %s",
 		}
 		for _, s := range steps {
+			r.Log(fmt.Sprintf("> %s", s))
 			if err := r.RunCommand(s); err != nil {
-				return fmt.Errorf("phase 5 step failed (%s): %w", s, err)
+				// WMI repairs can be finicky; log error but try to continue for certain steps
+				r.Log(fmt.Sprintf("! Warning: %s failed: %v", s, err))
 			}
 		}
 	case 6: // AppX

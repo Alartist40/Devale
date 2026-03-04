@@ -83,10 +83,16 @@
         } catch (e) {
             logs = [...logs, `ERROR: ${e instanceof Error ? e.message : String(e)}`];
         } finally {
-            if (repairPhase === 0) {
-                isRepairing = false;
-            }
+            isRepairing = false;
         }
+    }
+
+    async function resetRepairState() {
+        repairPhase = 0;
+        isRepairing = false;
+        await SaveState(0);
+        await ClearResume();
+        logs = [...logs, ">>> REPAIR STATE MANUALLY RESET"];
     }
 
     async function startFullRepair() {
@@ -120,9 +126,20 @@
                 <h1 style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900;">{isRepairing ? 'REPAIRING...' : 'SYSTEM READY'}</h1>
                 <div style="color: var(--accent); font-family: monospace; font-weight: bold; margin-bottom: 20px;">[ PHASE {repairPhase}/6 ]</div>
 
-                <button class="btn-panic" class:active={isRepairing} on:click={startFullRepair} disabled={isRepairing}>
-                    PANIC<br>BUTTON
-                </button>
+                <div style="position: relative; width: 220px; margin: 40px auto;">
+                    <button class="btn-panic" class:active={isRepairing} on:click={startFullRepair} disabled={isRepairing}>
+                        PANIC<br>BUTTON
+                    </button>
+
+                    {#if !isRepairing && repairPhase > 0}
+                        <button
+                            on:click={resetRepairState}
+                            style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: none; border: none; color: var(--text-dim); font-size: 10px; cursor: pointer; text-decoration: underline;"
+                        >
+                            RESET REPAIR STATE
+                        </button>
+                    {/if}
+                </div>
 
                 <div style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
                     {#each [1,2,3,4,5,6] as p}

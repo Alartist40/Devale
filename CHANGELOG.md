@@ -26,3 +26,6 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - Fixed command output truncation in the console using a dedicated Go reader thread.
 - Resolved encoding issues with Windows command results (UTF-8 conversion).
 - Improved the reliability of WMI repairs by automating MOF recompilation.
+- **Terminal UX:** Filtered out Windows shell headers (copyright, version) from the integrated terminal.
+- **Reliability:** Added manual "Reset Repair State" capability to recover from interrupted processes.
+- **Bug Fix:** Ensured the "Panic Button" correctly resets its active state upon completion or failure.

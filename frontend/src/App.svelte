@@ -9,11 +9,11 @@
     let sysInfo = { cpu: 'Loading...', memory: 'Loading...', gpu: 'Loading...', disk: 'Loading...' };
     let repairPhase = 0;
     let isRepairing = false;
+    let theme = 'light';
 
     onMount(async () => {
         EventsOn('terminal:output', (line: string) => {
             logs = [...logs, line];
-            // Auto-scroll
             setTimeout(() => {
                 const el = document.getElementById('terminal-logs');
                 if (el) el.scrollTop = el.scrollHeight;
@@ -25,7 +25,6 @@
             const lastPhase = await LoadState();
             if (lastPhase > 0) {
                 currentTab = 'Home';
-                // If we rebooted at phase 2, we should resume at phase 3
                 repairPhase = lastPhase === 2 ? 3 : lastPhase;
                 logs = [...logs, `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`];
                 continueRepair();
@@ -34,6 +33,11 @@
             console.error(e);
         }
     });
+
+    function toggleTheme() {
+        theme = theme === 'light' ? 'dark' : 'light';
+        document.body.setAttribute('data-theme', theme);
+    }
 
     async function handleCommand(e: KeyboardEvent) {
         if (e.key === 'Enter' && commandInput.trim()) {
@@ -77,8 +81,16 @@
     }
 </script>
 
+<div class="theme-switch-container" on:click={toggleTheme} role="button" tabindex="0" on:keydown={(e) => e.key === 'Enter' && toggleTheme()}>
+    <span class="switch-label">{theme === 'light' ? 'LIGHT' : 'DARK'}</span>
+    <div class="switch-base">
+        <div class="switch-thumb {theme === 'dark' ? 'active' : ''}"></div>
+    </div>
+</div>
+
 <div class="sidebar">
-    <div style="padding: 0 20px 20px; font-size: 24px; font-weight: bold; color: var(--accent-magenta); text-shadow: 0 0 10px var(--accent-magenta);">DEVALE v2</div>
+    <div style="padding: 0 20px 30px; font-size: 26px; font-weight: 900; color: var(--accent); text-align: center;">DEVALE</div>
+
     <div role="button" tabindex="0" class="nav-item {currentTab === 'Home' ? 'active' : ''}" on:click={() => currentTab = 'Home'} on:keydown={(e) => e.key === 'Enter' && (currentTab = 'Home')}>HOME</div>
     <div role="button" tabindex="0" class="nav-item {currentTab === 'Diagnose' ? 'active' : ''}" on:click={() => currentTab = 'Diagnose'} on:keydown={(e) => e.key === 'Enter' && (currentTab = 'Diagnose')}>DIAGNOSE</div>
     <div role="button" tabindex="0" class="nav-item {currentTab === 'Tools' ? 'active' : ''}" on:click={() => currentTab = 'Tools'} on:keydown={(e) => e.key === 'Enter' && (currentTab = 'Tools')}>TOOLS</div>
@@ -89,71 +101,59 @@
     <div class="content-area">
         {#if currentTab === 'Home'}
             <div style="text-align: center;">
-                <h1 style="margin-bottom: 5px;">SYSTEM STATUS: {isRepairing ? 'REPAIRING...' : 'READY'}</h1>
-                <div style="color: var(--accent-cyan); font-family: monospace; margin-bottom: 20px;">[ PHASE {repairPhase}/6 ]</div>
+                <h1 style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900;">{isRepairing ? 'REPAIRING...' : 'SYSTEM READY'}</h1>
+                <div style="color: var(--accent); font-family: monospace; font-weight: bold; margin-bottom: 20px;">[ PHASE {repairPhase}/6 ]</div>
 
-                <button class="btn-panic" on:click={startFullRepair} disabled={isRepairing}>
-                    {isRepairing ? 'RUNNING...' : 'PANIC\nBUTTON'}
+                <button class="btn-panic" class:active={isRepairing} on:click={startFullRepair} disabled={isRepairing}>
+                    PANIC<br>BUTTON
                 </button>
 
-                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 10px;">
+                <div style="margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
                     {#each [1,2,3,4,5,6] as p}
-                        <div style="width: 30px; height: 4px; background: {repairPhase >= p ? 'var(--accent-cyan)' : '#333'}; box-shadow: {repairPhase >= p ? '0 0 10px var(--accent-cyan)' : 'none'}"></div>
+                        <div style="width: 40px; height: 6px; border-radius: 3px; background: var(--bg-main); box-shadow: {repairPhase >= p ? 'inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light)' : '2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light)'};">
+                            <div style="width: 100%; height: 100%; background: {repairPhase >= p ? 'var(--accent)' : 'transparent'}; border-radius: 3px; transition: background 0.3s;"></div>
+                        </div>
                     {/each}
                 </div>
-                <p style="margin-top: 30px; color: var(--text-dim); max-width: 400px; margin-left: auto; margin-right: auto;">
-                    Automated deep-system repair. Includes DISM, SFC, CHKDSK, WMI, and Store App fixes. May require a restart.
-                </p>
             </div>
         {:else if currentTab === 'Diagnose'}
-            <h1>Hardware Telemetry</h1>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <h1 style="font-weight: 900;">HARDWARE TELEMETRY</h1>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
                 <div class="card">
-                    <h3 style="color: var(--accent-magenta)">CPU PROCEESOR</h3>
-                    <p style="font-family: monospace;">{sysInfo.cpu}</p>
+                    <h3 style="color: var(--accent); margin-top: 0;">PROCESSOR</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.cpu}</p>
                 </div>
                 <div class="card">
-                    <h3 style="color: var(--accent-magenta)">PHYSICAL MEMORY</h3>
-                    <p style="font-family: monospace;">{sysInfo.memory}</p>
+                    <h3 style="color: var(--accent); margin-top: 0;">MEMORY</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.memory}</p>
                 </div>
                 <div class="card">
-                    <h3 style="color: var(--accent-magenta)">GRAPHICS ADAPTER</h3>
-                    <p style="font-family: monospace;">{sysInfo.gpu}</p>
+                    <h3 style="color: var(--accent); margin-top: 0;">GRAPHICS</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.gpu}</p>
                 </div>
                 <div class="card">
-                    <h3 style="color: var(--accent-magenta)">BLOCK STORAGE</h3>
-                    <p style="font-family: monospace;">{sysInfo.disk}</p>
+                    <h3 style="color: var(--accent); margin-top: 0;">STORAGE</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.disk}</p>
                 </div>
             </div>
         {:else if currentTab === 'Tools'}
-            <h1>Manual Overrides</h1>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+            <h1 style="font-weight: 900;">MANUAL OVERRIDES</h1>
+            <div class="card" style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
                 <button class="tool-btn" on:click={() => RunCommand("ipconfig /flushdns")}>FLUSH_DNS</button>
                 <button class="tool-btn" on:click={() => RunCommand("taskkill /f /im explorer.exe && start explorer.exe")}>RESTART_EXPLORER</button>
                 <button class="tool-btn" on:click={() => RunCommand("cleanmgr /sagerun:1")}>DISK_CLEANUP</button>
-                <button class="tool-btn" on:click={() => RunCommand("SystemPropertiesProtection.exe")}>RESTORE_POINT_UI</button>
+                <button class="tool-btn" on:click={() => RunCommand("SystemPropertiesProtection.exe")}>RESTORE_POINT</button>
             </div>
         {:else if currentTab === 'AppStore'}
-            <h1>NEURAL APP STORE</h1>
-            <div style="background: #111; padding: 20px; border: 1px solid var(--accent-cyan);">
-                <p style="color: var(--accent-cyan)">> winget integration active</p>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="app-item">
-                        <span>Google Chrome</span>
-                        <button on:click={() => RunCommand("winget install Google.Chrome")}>INSTALL</button>
-                    </div>
-                    <div class="app-item">
-                        <span>VS Code</span>
-                        <button on:click={() => RunCommand("winget install Microsoft.VisualStudioCode")}>INSTALL</button>
-                    </div>
-                    <div class="app-item">
-                        <span>Discord</span>
-                        <button on:click={() => RunCommand("winget install Discord.Discord")}>INSTALL</button>
-                    </div>
-                    <div class="app-item">
-                        <span>7-Zip</span>
-                        <button on:click={() => RunCommand("winget install 7zip.7zip")}>INSTALL</button>
-                    </div>
+            <h1 style="font-weight: 900;">APP STORE</h1>
+            <div class="card">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    {#each ["Google.Chrome", "Microsoft.VisualStudioCode", "Discord.Discord", "7zip.7zip"] as id}
+                        <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold; margin-left: 10px;">{id.split('.')[id.split('.').length-1]}</span>
+                            <button class="tool-btn" style="padding: 8px 15px; font-size: 12px; margin: 0;" on:click={() => RunCommand(`winget install ${id}`)}>INSTALL</button>
+                        </div>
+                    {/each}
                 </div>
             </div>
         {/if}
@@ -166,49 +166,17 @@
             {/each}
         </div>
         <div class="terminal-input-row">
-            <span class="terminal-prompt">USER@DEVALE ></span>
-            <input class="terminal-input" bind:value={commandInput} on:keydown={handleCommand} placeholder="TYPE COMMAND..." />
+            <span class="terminal-prompt">SYSTEM ></span>
+            <input class="terminal-input" bind:value={commandInput} on:keydown={handleCommand} placeholder="ENTER COMMAND..." />
         </div>
     </div>
 </main>
 
 <style>
-    .card {
-        background: #16161a;
-        padding: 20px;
-        border: 1px solid var(--border);
-        box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-    }
-    .tool-btn {
-        padding: 12px 24px;
-        background: transparent;
-        border: 1px solid var(--accent-cyan);
-        color: var(--accent-cyan);
-        cursor: pointer;
-        font-family: monospace;
-        letter-spacing: 1px;
-    }
-    .tool-btn:hover {
-        background: var(--accent-cyan);
-        color: black;
-        box-shadow: 0 0 15px var(--accent-cyan);
-    }
     .app-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid #222;
+        transition: transform 0.2s;
     }
-    .app-item button {
-        background: transparent;
-        border: 1px solid var(--accent-magenta);
-        color: var(--accent-magenta);
-        padding: 5px 10px;
-        cursor: pointer;
-    }
-    .app-item button:hover {
-        background: var(--accent-magenta);
-        color: white;
+    .app-item:hover {
+        transform: translateY(-2px);
     }
 </style>

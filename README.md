@@ -1,41 +1,47 @@
-# DevAle v2 (Go Rewrite)
+# DevAle v2 - Go Rewrite
 
-DevAle is a high-performance system utility for Windows, rebuilt from the ground up in Go and TypeScript. It provides a robust 6-phase automated repair sequence, a guided IT support module, an app store (Winget), and an integrated terminal.
+DevAle v2 is a modern, high-performance system maintenance utility rewritten from the ground up. It transitions from a Python-based architecture to a single-binary Go backend with a TypeScript/Svelte frontend using the Wails framework.
 
-## Key Features
-- **🚀 Efficiency:** Rebuilt in Go for near-instant execution and minimal resource usage.
-- **🛡️ 6-Phase Repair Orchestrator:**
-  1. DISM Health Check & Repair
-  2. CHKDSK Scheduling (Auto-Resume after restart)
-  3. System File Checker (SFC)
-  4. Component Store Cleanup
-  5. WMI Repository Repair
-  6. AppX (Windows Store) Re-registration
-- **📦 Neural App Store:** Curated selection of essential apps via Winget.
-- **📟 Integrated Terminal:** Real-time log streaming and interactive shell.
-- **🎨 Cyberpunk Aesthetic:** Sleek, minimal, high-tech dark theme.
-- **🔐 Security:** Automatically requests Administrative privileges for system tasks.
+## 🚀 Key Features
+- **6-Phase Repair Orchestrator:** Automated system restoration (DISM, CHKDSK, SFC, Component Cleanup, WMI Repair, AppX Re-registration).
+- **Reboot & Resume:** Intelligent persistence that handles system restarts and resumes maintenance automatically.
+- **Neumorphic Dashboard:** A sleek, soft-UI design with full support for Light and Dark modes.
+- **Hardware Telemetry:** Real-time monitoring of CPU, RAM, GPU, and Storage health.
+- **Integrated Terminal:** Real-time logging and manual command execution.
+- **App Store:** One-click installations using Microsoft Winget.
+- **Zero Dependencies:** Compiled to a single standalone executable.
 
-## Architecture
-- **Backend:** Go (Golang)
-- **Frontend:** Wails Framework (Svelte + TypeScript)
-- **State:** JSON-based persistence with `schtasks` for post-reboot recovery.
+## 🏗️ Architecture
+- **Backend:** Go (Golang) for system-level execution and subprocess management.
+- **Frontend:** TypeScript, Svelte, and CSS3 (Neumorphic Design).
+- **Communication:** Wails runtime bridge for asynchronous IPC.
+- **Security:** Integrated Windows Manifest for mandatory UAC elevation.
 
-## Development Setup
-1. **Prerequisites:**
-   - Go 1.20+
-   - Node.js & pnpm
-   - Wails CLI (`go install github.com/wailsapp/wails/v2/cmd/wails@latest`)
+## 🛠️ Setup & Build
+### Prerequisites
+- [Go](https://go.dev/) (1.21+)
+- [Node.js](https://nodejs.org/) & [NPM](https://www.npmjs.com/)
+- [Wails CLI](https://wails.io/docs/gettingstarted/installation)
 
-2. **Run in Dev Mode:**
-   ```bash
-   wails dev
-   ```
+### Development
+```bash
+wails dev
+```
 
-3. **Build for Production:**
-   ```bash
-   wails build
-   ```
+### Production Build
+To build a standalone Windows executable:
+```bash
+wails build -platform windows/amd64
+```
+The output binary will be located in `build/bin/devale-v2.exe`.
 
-## License
-MIT License
+## 📂 Project Structure
+- `main.go`: Application entry point and Wails configuration.
+- `app.go`: Go-to-Frontend bindings and business logic.
+- `runner.go`: Subprocess orchestration and repair phase logic.
+- `sysinfo.go`: Hardware telemetry collection.
+- `state.go`: Persistence layer for repair status.
+- `frontend/`: Svelte source code, Neumorphic styles, and TypeScript components.
+
+## 📜 License
+MIT License. Created with ❤️ for I.T. Support efficiency.

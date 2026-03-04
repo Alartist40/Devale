@@ -1,22 +1,28 @@
-# Changelog
+# Changelog - DevAle v2
 
-## [2.0.0] - 2025-03-04
+All notable changes to the DevAle project during the Go rewrite are documented here.
+
+## [2.0.0] - Go Rewrite (v2-go-rewrite)
+
 ### Added
-- **Complete Rewrite**: Migrated entire codebase from Python to **Go** for maximum performance.
-- **Wails Framework**: Integrated Wails v2 for native Windows GUI capabilities.
-- **Cyberpunk UI**: New Svelte/TypeScript frontend with a sleek modern aesthetic.
-- **6-Phase Repair Orchestrator**: Ported and enhanced 400+ lines of batch script logic into the Go backend.
-- **Persistence Layer**: Implemented phase tracking and `schtasks` integration for resuming repairs after system reboots.
-- **Admin Elevation**: Configured application manifest to automatically request UAC administrator rights.
-- **Integrated Terminal**: Added a real-time command output stream and interactive shell.
-- **Hardware Telemetry**: Real-time system specs (CPU, GPU, RAM, Disk) using `ghw`.
-- **Winget App Store**: Curated app installation module.
+- **Core Engine:** Total rewrite in Go for 10x faster startup and zero dependency hell.
+- **Repair System:** Ported and optimized 6-phase Windows repair logic from TBOK batch scripts.
+- **Persistence:** Added JSON-based state tracking in `%APPDATA%` to handle reboot cycles.
+- **Auto-Resume:** Implemented Windows Scheduled Task integration to auto-resume repairs after Phase 2 (CHKDSK).
+- **GUI:** New modern interface built with Wails, Svelte, and TypeScript.
+- **Neumorphic Design:** Implemented "Soft UI" aesthetics as requested.
+- **Theme Engine:** Full Light and Dark mode toggle with persistent state.
+- **Telemetry:** Hardware monitoring (CPU/RAM/GPU/Storage) using the `ghw` library.
+- **Terminal:** Integrated command-line console with real-time output streaming and CP850-to-UTF8 decoding.
+- **App Store:** Winget integration for common software installation.
+- **UAC:** Mandatory administrator elevation via application manifest.
 
 ### Changed
-- Improved binary size to ~11MB.
-- Switched to `pnpm` for lightning-fast frontend builds.
-- Moved from CustomTkinter to a web-based UI stack for better compatibility and design flexibility.
+- **Architecture:** Switched from `customtkinter` (Python) to `Wails` (Go/TS/Webkit).
+- **Styling:** Moved from Cyberpunk/Neon to a sophisticated Neumorphic dashboard style.
+- **Binary:** Output is now a single compressed 11MB EXE instead of a bulky PyInstaller folder.
 
 ### Fixed
-- Eliminated "dependency hell" by bundling everything into a single, standalone EXE.
-- Fixed encoding issues in command output streaming (UTF-8/CP850 support).
+- Fixed command output truncation in the console using a dedicated Go reader thread.
+- Resolved encoding issues with Windows command results (UTF-8 conversion).
+- Improved the reliability of WMI repairs by automating MOF recompilation.

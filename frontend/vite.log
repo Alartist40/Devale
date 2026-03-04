@@ -8,3 +8,8 @@ Forced re-optimization of dependencies
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: use --host to expose
+11:07:52 AM [vite] page reload dist/index.html
+11:11:00 AM [vite] page reload dist/index.html
+11:11:04 AM [vite] page reload dist/index.html
+11:12:42 AM [vite] page reload dist/index.html
+11:13:12 AM [vite] page reload dist/index.html

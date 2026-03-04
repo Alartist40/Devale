@@ -33,6 +33,7 @@ func (r *CommandRunner) RunCommand(cmdStr string) error {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", cmdStr)
+		setHideWindow(cmd)
 	} else {
 		cmd = exec.Command("sh", "-c", cmdStr)
 	}
@@ -100,7 +101,16 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		}
 	case 2: // CHKDSK
 		r.Log("--- PHASE 2: Scheduling CHKDSK ---")
-		return r.RunCommand("echo Y | chkdsk C: /f")
+		err := r.RunCommand("echo Y | chkdsk C: /f")
+		if err != nil {
+			// Exit status 3 is common when chkdsk schedules successfully but cannot lock the drive
+			if strings.Contains(err.Error(), "exit status 3") {
+				r.Log(">>> CHKDSK scheduled successfully (status 3).")
+				return nil
+			}
+			return err
+		}
+		return nil
 	case 3: // SFC
 		r.Log("--- PHASE 3: SFC Scan ---")
 		return r.RunCommand("sfc /scannow")

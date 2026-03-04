@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -35,6 +36,9 @@ func LoadState() (State, error) {
 	var state State
 	data, err := os.ReadFile(file)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return state, nil
+		}
 		return state, err
 	}
 

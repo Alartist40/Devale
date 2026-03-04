@@ -36,8 +36,14 @@ func (r *CommandRunner) RunCommand(cmdStr string) error {
 		cmd = exec.Command("sh", "-c", cmdStr)
 	}
 
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("create stdout pipe: %w", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("create stderr pipe: %w", err)
+	}
 
 	if err := cmd.Start(); err != nil {
 		return err
@@ -74,7 +80,9 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"dism /online /cleanup-image /restorehealth",
 		}
 		for _, s := range steps {
-			r.RunCommand(s)
+			if err := r.RunCommand(s); err != nil {
+				return fmt.Errorf("phase 1 step failed (%s): %w", s, err)
+			}
 		}
 	case 2: // CHKDSK
 		r.Log("--- PHASE 2: Scheduling CHKDSK ---")
@@ -87,18 +95,26 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		return r.RunCommand("dism /online /cleanup-image /startcomponentcleanup /resetbase")
 	case 5: // WMI
 		r.Log("--- PHASE 5: WMI Repair ---")
-		// Porting aggressive batch WMI logic
-		r.RunCommand("sc config winmgmt start= disabled")
-		r.RunCommand("net stop winmgmt /y")
-		r.RunCommand("cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.dll') do regsvr32 /s %s")
-		r.RunCommand("wmiprvse /regserver")
-		r.RunCommand("winmgmt /regserver")
-		r.RunCommand("sc config winmgmt start= auto")
-		r.RunCommand("net start winmgmt")
-		r.RunCommand("cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.mof *.mfl ^| findstr /v /i \"uninstall\"') do mofcomp %s")
+		steps := []string{
+			"sc config winmgmt start= disabled",
+			"net stop winmgmt /y",
+			"cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.dll') do regsvr32 /s %s",
+			"wmiprvse /regserver",
+			"winmgmt /regserver",
+			"sc config winmgmt start= auto",
+			"net start winmgmt",
+			"cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.mof *.mfl ^| findstr /v /i \"uninstall\"') do mofcomp %s",
+		}
+		for _, s := range steps {
+			if err := r.RunCommand(s); err != nil {
+				return fmt.Errorf("phase 5 step failed (%s): %w", s, err)
+			}
+		}
 	case 6: // AppX
 		r.Log("--- PHASE 6: AppX Re-registration ---")
 		return r.RunCommand("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register '$($_.InstallLocation)\\AppXManifest.xml' -ErrorAction SilentlyContinue }\"")
+	default:
+		return fmt.Errorf("invalid repair phase: %d", phase)
 	}
 	return nil
 }

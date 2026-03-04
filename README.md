@@ -27,7 +27,7 @@ easy_build.bat
 
 ### 🛠️ Manual Way
 #### Prerequisites
-- [Go](https://go.dev/) (1.21+)
+- [Go](https://go.dev/) (1.24+)
 - [Node.js](https://nodejs.org/) & [NPM](https://www.npmjs.com/)
 - [Wails CLI](https://wails.io/docs/gettingstarted/installation)
 

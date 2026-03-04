@@ -27,7 +27,7 @@
                 currentTab = 'Home';
                 repairPhase = lastPhase === 2 ? 3 : lastPhase;
                 logs = [...logs, `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`];
-                continueRepair();
+                void continueRepair();
             }
         } catch (e) {
             console.error(e);
@@ -50,34 +50,50 @@
 
     async function continueRepair() {
         isRepairing = true;
-        for (let i = repairPhase || 1; i <= 6; i++) {
-            repairPhase = i;
-            await SaveState(i);
+        try {
+            for (let i = repairPhase || 1; i <= 6; i++) {
+                repairPhase = i;
+                await SaveState(i);
 
-            if (i === 2) {
-                logs = [...logs, "!!! PHASE 2 REQUIRES RESTART !!!"];
-                await RunRepairPhase(2);
-                await ScheduleResume();
-                logs = [...logs, "System will restart in 10 seconds. Auto-resume scheduled."];
-                await RunCommand("shutdown /r /t 10 /c \"DevAle System Repair - Restarting for CHKDSK\"");
-                return;
+                if (i === 2) {
+                    logs = [...logs, "!!! PHASE 2 REQUIRES RESTART !!!"];
+                    const phase2Result = await RunRepairPhase(2);
+                    if (phase2Result.startsWith("Error:")) {
+                        throw new Error(`Phase 2 failed: ${phase2Result}`);
+                    }
+                    const scheduleResult = await ScheduleResume();
+                    if (scheduleResult.startsWith("Error:")) {
+                        throw new Error(`Resume scheduling failed: ${scheduleResult}`);
+                    }
+                    logs = [...logs, "System will restart in 10 seconds. Auto-resume scheduled."];
+                    await RunCommand("shutdown /r /t 10 /c \"DevAle System Repair - Restarting for CHKDSK\"");
+                    return;
+                }
+
+                const result = await RunRepairPhase(i);
+                if (result.startsWith("Error:")) {
+                    throw new Error(`Phase ${i} failed: ${result}`);
+                }
             }
 
-            await RunRepairPhase(i);
+            await ClearResume();
+            await SaveState(0);
+            repairPhase = 0;
+            logs = [...logs, "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---"];
+        } catch (e) {
+            logs = [...logs, `ERROR: ${e instanceof Error ? e.message : String(e)}`];
+        } finally {
+            if (repairPhase === 0) {
+                isRepairing = false;
+            }
         }
-
-        await ClearResume();
-        await SaveState(0);
-        repairPhase = 0;
-        isRepairing = false;
-        logs = [...logs, "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---"];
     }
 
     async function startFullRepair() {
         if (isRepairing) return;
         logs = [...logs, "--- INITIATING FULL SYSTEM REPAIR (6 PHASES) ---"];
         repairPhase = 1;
-        continueRepair();
+        void continueRepair();
     }
 </script>
 

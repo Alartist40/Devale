@@ -44,6 +44,9 @@ func (a *App) GetSystemInfo() (*sysinfo.Info, error) {
 }
 
 func (a *App) SaveState(phase int) error {
+	if phase < 0 || phase > 6 {
+		return fmt.Errorf("invalid phase: %d", phase)
+	}
 	return persistence.SaveState(persistence.State{Phase: phase})
 }
 
@@ -53,9 +56,12 @@ func (a *App) LoadState() (int, error) {
 }
 
 func (a *App) RunRepairPhase(phase int) string {
+	if phase < 1 || phase > 6 {
+		return fmt.Sprintf("Error: invalid phase %d", phase)
+	}
 	err := a.runner.RunRepairPhase(phase)
 	if err != nil {
-		return err.Error()
+		return fmt.Sprintf("Error: %s", err)
 	}
 	return "Success"
 }

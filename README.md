@@ -18,17 +18,25 @@ DevAle v2 is a modern, high-performance system maintenance utility rewritten fro
 - **Security:** Integrated Windows Manifest for mandatory UAC elevation.
 
 ## 🛠️ Setup & Build
-### Prerequisites
+
+### ⚡ Easy Way (Windows)
+Just run the included batch script. It will check for Go and Node.js, install Wails if missing, and build the final EXE for you:
+```cmd
+easy_build.bat
+```
+
+### 🛠️ Manual Way
+#### Prerequisites
 - [Go](https://go.dev/) (1.21+)
 - [Node.js](https://nodejs.org/) & [NPM](https://www.npmjs.com/)
 - [Wails CLI](https://wails.io/docs/gettingstarted/installation)
 
-### Development
+#### Development
 ```bash
 wails dev
 ```
 
-### Production Build
+#### Production Build
 To build a standalone Windows executable:
 ```bash
 wails build -platform windows/amd64

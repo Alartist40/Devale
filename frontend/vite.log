@@ -1,0 +1,10 @@
+
+> frontend@0.0.0 dev /app/frontend
+> vite
+
+Forced re-optimization of dependencies
+
+  VITE v3.2.11  ready in 491 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose

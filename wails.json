@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "devale-v2",
+  "outputfilename": "devale-v2",
+  "frontend:install": "pnpm install",
+  "frontend:build": "pnpm run build",
+  "frontend:dev:watcher": "pnpm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "google-labs-jules[bot]",
+    "email": "161369871+google-labs-jules[bot]@users.noreply.github.com"
+  }
+}

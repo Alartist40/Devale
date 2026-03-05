@@ -11,23 +11,18 @@ type State struct {
 	Phase int `json:"phase"`
 }
 
-func getStoragePath() (string, error) {
+func getStoragePath() string {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		dir = "."
 	}
 	path := filepath.Join(dir, "DevAle")
-	if err := os.MkdirAll(path, 0755); err != nil {
-		return "", err
-	}
-	return filepath.Join(path, "state.json"), nil
+	os.MkdirAll(path, 0755)
+	return filepath.Join(path, "state.json")
 }
 
 func SaveState(state State) error {
-	file, err := getStoragePath()
-	if err != nil {
-		return err
-	}
+	file := getStoragePath()
 	data, err := json.Marshal(state)
 	if err != nil {
 		return err
@@ -37,10 +32,7 @@ func SaveState(state State) error {
 }
 
 func LoadState() (State, error) {
-	file, err := getStoragePath()
-	if err != nil {
-		return State{}, err
-	}
+	file := getStoragePath()
 	var state State
 	data, err := os.ReadFile(file)
 	if err != nil {
@@ -55,9 +47,6 @@ func LoadState() (State, error) {
 }
 
 func ClearState() error {
-	file, err := getStoragePath()
-	if err != nil {
-		return err
-	}
+	file := getStoragePath()
 	return os.Remove(file)
 }

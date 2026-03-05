@@ -69,7 +69,7 @@ func (a *App) RunRepairPhase(phase int) string {
 func (a *App) ScheduleResume() string {
 	err := a.runner.ScheduleResume()
 	if err != nil {
-		return fmt.Sprintf("Error: %s", err)
+		return err.Error()
 	}
 	return "Success"
 }
@@ -77,7 +77,7 @@ func (a *App) ScheduleResume() string {
 func (a *App) ClearResume() string {
 	err := a.runner.ClearResume()
 	if err != nil {
-		return fmt.Sprintf("Error: %s", err)
+		return err.Error()
 	}
 	return "Success"
 }

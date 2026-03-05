@@ -44,14 +44,7 @@
             const cmd = commandInput;
             commandInput = '';
             logs = [...logs, `USER@DEVALE > ${cmd}`];
-            try {
-                const res = await RunCommand(cmd);
-                if (res.startsWith("Error:")) {
-                    logs = [...logs, res];
-                }
-            } catch (err) {
-                logs = [...logs, `ERROR: ${err instanceof Error ? err.message : String(err)}`];
-            }
+            await RunCommand(cmd);
         }
     }
 

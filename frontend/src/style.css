@@ -1,0 +1,302 @@
+:root {
+    /* Default Light Mode (Neumorphic) */
+    --bg-main: #e0e5ec;
+    --bg-sidebar: #e0e5ec;
+    --text-main: #31344b;
+    --text-dim: #6b728e;
+    --accent: #ff8c00;
+    --shadow-light: #ffffff;
+    --shadow-dark: #a3b1c6;
+    --glow: rgba(255, 140, 0, 0.3);
+    --terminal-bg: #1a1a1d;
+    --terminal-text: #00ff41;
+}
+
+[data-theme='dark'] {
+    --bg-main: #121214;
+    --bg-sidebar: #121214;
+    --text-main: #e0e0e0;
+    --text-dim: #888888;
+    --accent: #00f3ff;
+    --shadow-light: #1d1d21;
+    --shadow-dark: #070708;
+    --terminal-bg: #000000;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#app {
+    height: 100vh;
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 30px 0;
+}
+
+.nav-item {
+    margin: 10px 20px;
+    padding: 12px 15px;
+    cursor: pointer;
+    border-radius: 50px; /* Pill shape */
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+}
+
+.nav-item:hover {
+    color: var(--accent);
+}
+
+.nav-item.active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    color: var(--accent);
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.content-area {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+/* Neumorphic Components */
+.card {
+    background: var(--bg-main);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+    margin-bottom: 20px;
+}
+
+.tool-btn {
+    padding: 15px 25px;
+    border-radius: 50px; /* Pill shape */
+    background: var(--bg-main);
+    border: none;
+    color: var(--text-main);
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    transition: all 0.2s;
+    margin: 5px;
+}
+
+.tool-btn:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+}
+
+.tool-btn:hover {
+    color: var(--accent);
+}
+
+/* Panic Button (Special Neumorphic) */
+.btn-panic {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: var(--bg-main);
+    border: none;
+    color: #ff4d4d;
+    font-size: 24px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 12px 12px 24px var(--shadow-dark), -12px -12px 24px var(--shadow-light);
+    margin: 40px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.btn-panic::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.btn-panic:active, .btn-panic.active {
+    box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light);
+    transform: scale(0.98);
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent);
+}
+
+.btn-panic:hover {
+    color: var(--accent);
+    text-shadow: 0 0 5px var(--accent);
+}
+
+/* Terminal */
+.terminal-area {
+    height: 220px;
+    background-color: var(--terminal-bg);
+    margin: 20px;
+    border-radius: 20px;
+    box-shadow: inset 6px 6px 12px #000, inset -2px -2px 4px #333;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.terminal-logs {
+    flex: 1;
+    padding: 15px;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px;
+    overflow-y: auto;
+    color: var(--terminal-text);
+}
+
+/* Custom Scrollbar for Terminal */
+.terminal-logs::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-logs::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.terminal-logs::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
+    box-shadow: 0 0 5px var(--accent);
+}
+
+.terminal-logs::-webkit-scrollbar-thumb:hover {
+    background: #ffffff;
+    box-shadow: 0 0 10px #ffffff;
+}
+
+/* Custom Scrollbar for Main Content */
+.content-area::-webkit-scrollbar {
+    width: 8px;
+}
+
+.content-area::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+.content-area::-webkit-scrollbar-thumb {
+    background: var(--shadow-dark);
+    border-radius: 10px;
+}
+
+.content-area::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+}
+
+.terminal-input-row {
+    display: flex;
+    padding: 10px 15px;
+    background: rgba(255,255,255,0.05);
+}
+
+.terminal-prompt {
+    color: var(--accent);
+    font-weight: bold;
+    padding-right: 10px;
+}
+
+.terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    font-family: inherit;
+}
+
+.terminal-input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Theme Switch UI */
+.theme-switch-container {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 50px;
+    background: var(--bg-main);
+    box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.theme-switch-container:hover {
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+}
+
+.switch-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-main);
+    min-width: 40px;
+}
+
+.switch-base {
+    width: 44px;
+    height: 22px;
+    border-radius: 50px;
+    background: var(--bg-main);
+    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    position: relative;
+    padding: 3px;
+}
+
+.switch-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-main);
+    box-shadow: 2px 2px 5px var(--shadow-dark);
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), background 0.3s ease, box-shadow 0.3s;
+}
+
+.switch-thumb.active {
+    transform: translateX(22px);
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+}
+
+.theme-switch-container:hover .switch-thumb.active {
+    box-shadow: 0 0 15px var(--accent);
+}

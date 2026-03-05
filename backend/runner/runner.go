@@ -30,6 +30,9 @@ func NewCommandRunner(ctx context.Context) *CommandRunner {
 }
 
 func (r *CommandRunner) RunCommand(cmdStr string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", cmdStr)
@@ -82,6 +85,9 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 		}
 
 		wailsRuntime.EventsEmit(r.ctx, "terminal:output", line)
+	}
+	if err := scanner.Err(); err != nil {
+		wailsRuntime.EventsEmit(r.ctx, "terminal:output", fmt.Sprintf("stream error: %v", err))
 	}
 }
 

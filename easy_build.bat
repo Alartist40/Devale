@@ -29,7 +29,7 @@ where wails >nul 2>nul
 if %ERRORLEVEL% neq 0 (
     echo [INFO] Wails CLI not found. Attempting to install...
     go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
-    if %ERRORLEVEL% neq 0 (
+    if !ERRORLEVEL! neq 0 (
         echo [ERROR] Failed to install Wails. Please install it manually: go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
         pause
         exit /b 1

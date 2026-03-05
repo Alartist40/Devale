@@ -21,8 +21,10 @@ type Step struct {
 }
 
 type CommandRunner struct {
-	ctx context.Context
-	mu  sync.Mutex
+	ctx        context.Context
+	mu         sync.Mutex
+	cancelMu   sync.Mutex
+	cancelFunc context.CancelFunc
 }
 
 func NewCommandRunner(ctx context.Context) *CommandRunner {
@@ -30,12 +32,27 @@ func NewCommandRunner(ctx context.Context) *CommandRunner {
 }
 
 func (r *CommandRunner) RunCommand(cmdStr string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Create a sub-context for this command
+	cmdCtx, cancel := context.WithCancel(r.ctx)
+	r.cancelMu.Lock()
+	r.cancelFunc = cancel
+	r.cancelMu.Unlock()
+
+	defer func() {
+		r.cancelMu.Lock()
+		r.cancelFunc = nil
+		r.cancelMu.Unlock()
+	}()
+
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", cmdStr)
+		cmd = exec.CommandContext(cmdCtx, "cmd", "/c", cmdStr)
 		setHideWindow(cmd)
 	} else {
-		cmd = exec.Command("sh", "-c", cmdStr)
+		cmd = exec.CommandContext(cmdCtx, "sh", "-c", cmdStr)
 	}
 
 	stdout, err := cmd.StdoutPipe()
@@ -85,7 +102,22 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 	}
 }
 
+func (r *CommandRunner) StopCommand() {
+	r.cancelMu.Lock()
+	defer r.cancelMu.Unlock()
+	if r.cancelFunc != nil {
+		r.cancelFunc()
+		r.Log("!!! PROCESS MANUALLY INTERRUPTED BY USER !!!")
+	}
+}
+
 func (r *CommandRunner) RunRepairPhase(phase int) error {
+	select {
+	case <-r.ctx.Done():
+		return fmt.Errorf("operation cancelled")
+	default:
+	}
+
 	switch phase {
 	case 1: // DISM
 		r.Log("--- PHASE 1: DISM Health Check ---")

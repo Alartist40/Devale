@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { EventsOn } from '../wailsjs/runtime/runtime.js';
-    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState } from '../wailsjs/go/main/App.js';
+    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair } from '../wailsjs/go/main/App.js';
 
     let currentTab = 'Home';
     let logs: string[] = [];
@@ -101,6 +101,12 @@
         repairPhase = 1;
         void continueRepair();
     }
+
+    async function stopFullRepair() {
+        if (!isRepairing) return;
+        await StopRepair();
+        logs = [...logs, ">>> STOP REQUEST SENT"];
+    }
 </script>
 
 <div class="theme-switch-container" on:click={toggleTheme} role="button" tabindex="0" on:keydown={(e) => e.key === 'Enter' && toggleTheme()}>
@@ -131,7 +137,14 @@
                         PANIC<br>BUTTON
                     </button>
 
-                    {#if !isRepairing && repairPhase > 0}
+                    {#if isRepairing}
+                        <button
+                            on:click={stopFullRepair}
+                            style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: #ff4d4d; border: none; color: white; font-size: 10px; cursor: pointer; padding: 5px 15px; border-radius: 20px; font-weight: 900; box-shadow: 2px 2px 5px var(--shadow-dark);"
+                        >
+                            STOP REPAIR
+                        </button>
+                    {:else if repairPhase > 0}
                         <button
                             on:click={resetRepairState}
                             style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: none; border: none; color: var(--text-dim); font-size: 10px; cursor: pointer; text-decoration: underline;"
@@ -175,13 +188,15 @@
                 <button class="tool-btn" on:click={() => RunCommand("ipconfig /flushdns")}>FLUSH_DNS</button>
                 <button class="tool-btn" on:click={() => RunCommand("taskkill /f /im explorer.exe && start explorer.exe")}>RESTART_EXPLORER</button>
                 <button class="tool-btn" on:click={() => RunCommand("cleanmgr /sagerun:1")}>DISK_CLEANUP</button>
+                <button class="tool-btn" on:click={() => RunCommand("mrt.exe")}>MRT_SCAN</button>
+                <button class="tool-btn" on:click={() => RunCommand("taskmgr.exe")}>TASK_MGR</button>
                 <button class="tool-btn" on:click={() => RunCommand("SystemPropertiesProtection.exe")}>RESTORE_POINT</button>
             </div>
         {:else if currentTab === 'AppStore'}
             <h1 style="font-weight: 900;">APP STORE</h1>
             <div class="card">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    {#each ["Google.Chrome", "Microsoft.VisualStudioCode", "Discord.Discord", "7zip.7zip"] as id}
+                    {#each ["Brave.Brave", "DuckDuckGo.DesktopBrowser", "Microsoft.VisualStudioCode", "7zip.7zip"] as id}
                         <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: bold; margin-left: 10px;">{id.split('.')[id.split('.').length-1]}</span>
                             <button class="tool-btn" style="padding: 8px 15px; font-size: 12px; margin: 0;" on:click={() => RunCommand(`winget install ${id}`)}>INSTALL</button>

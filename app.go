@@ -39,6 +39,10 @@ func (a *App) RunCommand(cmd string) string {
 	return "Success"
 }
 
+func (a *App) StopRepair() {
+	a.runner.StopCommand()
+}
+
 func (a *App) GetSystemInfo() (*sysinfo.Info, error) {
 	return sysinfo.GetSystemInfo()
 }

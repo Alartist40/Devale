@@ -17,3 +17,5 @@ export function RunRepairPhase(arg1:number):Promise<string>;
 export function SaveState(arg1:number):Promise<void>;
 
 export function ScheduleResume():Promise<string>;
+
+export function StopRepair():Promise<void>;

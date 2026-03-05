@@ -33,3 +33,7 @@ export function SaveState(arg1) {
 export function ScheduleResume() {
   return window['go']['main']['App']['ScheduleResume']();
 }
+
+export function StopRepair() {
+  return window['go']['main']['App']['StopRepair']();
+}

@@ -27,5 +27,7 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - Resolved encoding issues with Windows command results (UTF-8 conversion).
 - Improved the reliability of WMI repairs by automating MOF recompilation.
 - **Terminal UX:** Filtered out Windows shell headers (copyright, version) from the integrated terminal.
+- **UX Refinement:** Replaced default system scrollbars with custom-themed Neumorphic scrollbars for a consistent "Cyberpunk-lite" feel.
+- **Logging Optimization:** Suppressed verbose per-file command output (DLL/MOF/DISM progress) to prevent terminal "glitching" and replaced it with concise "Loading..." sequences.
 - **Reliability:** Added manual "Reset Repair State" capability to recover from interrupted processes.
-- **Bug Fix:** Ensured the "Panic Button" correctly resets its active state upon completion or failure.
+- **Bug Fix:** Fixed AppX re-registration command syntax error and ensured the "Panic Button" correctly resets its active state.

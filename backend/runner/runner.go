@@ -93,8 +93,23 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 		}
 		// Skip copyright and version headers
 		if strings.Contains(line, "Microsoft Windows [Version") ||
-		   strings.Contains(line, "(c) Microsoft Corporation") ||
-		   strings.Contains(line, "Microsoft (R) Windows (R)") {
+			strings.Contains(line, "(c) Microsoft Corporation") ||
+			strings.Contains(line, "Microsoft (R) Windows (R)") {
+			continue
+		}
+
+		// FILTERING FOR CLEANER UI (No glitching/scrolling noise)
+		// Skip verbose per-file logs for common long-running operations
+		if strings.Contains(line, "regsvr32 /s") ||
+			strings.Contains(line, "mofcomp ") ||
+			strings.Contains(line, "Parsing MOF file:") ||
+			strings.Contains(line, "MOF file has been successfully parsed") ||
+			strings.Contains(line, "Storing data in the repository") ||
+			strings.Contains(line, "Verification") && strings.Contains(line, "% complete") ||
+			strings.Contains(line, "[") && strings.Contains(line, "%") && strings.Contains(line, "=") {
+
+			// Periodically send a "Working..." message instead of every line if we want to show life
+			// For now, let's just emit the phase header from the orchestrator and keep terminal clean
 			continue
 		}
 
@@ -145,12 +160,15 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		return nil
 	case 3: // SFC
 		r.Log("--- PHASE 3: SFC Scan ---")
+		r.Log(">>> Beginning system scan. This will take 10-15 minutes...")
 		return r.RunCommand("sfc /scannow")
 	case 4: // Component Cleanup
 		r.Log("--- PHASE 4: Component Store Cleanup ---")
+		r.Log(">>> Cleaning up component store. This will take several minutes...")
 		return r.RunCommand("dism /online /cleanup-image /startcomponentcleanup /resetbase")
 	case 5: // WMI
 		r.Log("--- PHASE 5: WMI Repair ---")
+		r.Log(">>> Stopping WMI services and re-registering core libraries...")
 		steps := []string{
 			"sc config winmgmt start= disabled",
 			"net stop winmgmt /y",
@@ -170,7 +188,7 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		}
 	case 6: // AppX
 		r.Log("--- PHASE 6: AppX Re-registration ---")
-		return r.RunCommand("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register '$($_.InstallLocation)\\AppXManifest.xml' -ErrorAction SilentlyContinue }\"")
+		return r.RunCommand("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\" -ErrorAction SilentlyContinue }\"")
 	default:
 		return fmt.Errorf("invalid repair phase: %d", phase)
 	}

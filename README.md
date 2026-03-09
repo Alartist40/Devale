@@ -4,18 +4,21 @@ DevAle v2 is a modern, high-performance system maintenance utility rewritten fro
 
 ## 🚀 Key Features
 - **6-Phase Repair Orchestrator:** Automated system restoration (DISM, CHKDSK, SFC, Component Cleanup, WMI Repair, AppX Re-registration).
-- **Reboot & Resume:** Intelligent persistence that handles system restarts and resumes maintenance automatically.
-- **Neumorphic Dashboard:** A sleek, soft-UI design with full support for Light and Dark modes.
-- **Hardware Telemetry:** Real-time monitoring of CPU, RAM, GPU, and Storage health.
-- **Integrated Terminal:** Real-time logging and manual command execution.
-- **App Store:** One-click installations using Microsoft Winget.
+- **Intelligent Step-Level Resumption:** Skip already-completed steps within a phase to save time.
+- **Safety Backups:** Automatic System Restore Point creation before starting repairs.
+- **Advanced Diagnostics:** Real-time CPU/RAM progress bars, detailed Partition Map, and Disk Health monitoring (WMIC).
+- **Pre-Flight Dashboard:** Real-time monitoring of Battery, Pending Updates, and Network Ping.
+- **Power-User Kit:** Integrated Driver Audit, Startup Manager, and Disk Management shortcuts.
+- **Neumorphic Dashboard:** A sleek, "Soft-UI" design with Full Light/Dark mode and pulsating repair animations.
+- **Categorized App Store:** One-click installations using Microsoft Winget for Browsers, Dev Tools, and Gaming.
+- **Integrated Terminal:** Real-time color-coded logging and manual command execution.
 - **Zero Dependencies:** Compiled to a single standalone executable.
 
 ## 🏗️ Architecture
 - **Backend:** Go (Golang) for system-level execution and subprocess management.
 - **Frontend:** TypeScript, Svelte, and CSS3 (Neumorphic Design).
-- **Communication:** Wails runtime bridge for asynchronous IPC.
-- **Security:** Integrated Windows Manifest for mandatory UAC elevation.
+- **Communication:** Wails runtime bridge for asynchronous IPC and event streaming.
+- **Security:** Integrated Windows Manifest for mandatory UAC elevation and internal command trust boundaries.
 
 ## 🛠️ Setup & Build
 
@@ -46,9 +49,9 @@ The output binary will be located in `build/bin/devale-v2.exe`.
 ## 📂 Project Structure
 - `main.go`: Application entry point and Wails configuration.
 - `app.go`: Go-to-Frontend bindings and business logic.
-- `runner.go`: Subprocess orchestration and repair phase logic.
-- `sysinfo.go`: Hardware telemetry collection.
-- `state.go`: Persistence layer for repair status.
+- `backend/runner/`: Subprocess orchestration, repair phase logic, and application management.
+- `backend/sysinfo/`: Hardware telemetry and system health collection.
+- `backend/persistence/`: Persistence layer for repair status.
 - `frontend/`: Svelte source code, Neumorphic styles, and TypeScript components.
 
 ## 📜 License

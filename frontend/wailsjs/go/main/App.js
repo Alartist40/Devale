@@ -41,3 +41,11 @@ export function StopRepair() {
 export function GetApplications() {
   return window['go']['main']['App']['GetApplications']();
 }
+
+export function ExportLogs(arg1) {
+  return window['go']['main']['App']['ExportLogs'](arg1);
+}
+
+export function OpenDiskManager() {
+  return window['go']['main']['App']['OpenDiskManager']();
+}

@@ -25,6 +25,9 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.runner = runner.NewCommandRunner(ctx)
 
+	// Start background telemetry loop
+	go a.telemetryLoop()
+
 	if !runner.IsAdmin() {
 		a.runner.Log("! ERROR: DevAle is NOT running with Administrator privileges.")
 		a.runner.Log("! Some system repair features may fail to execute correctly.")
@@ -58,6 +61,20 @@ func (a *App) RunCommand(cmd string) string {
 
 func (a *App) GetApplications() ([]runner.AppCategory, error) {
 	return a.runner.GetApplications()
+}
+
+func (a *App) telemetryLoop() {
+	// Send real-time usage data every 2 seconds
+	// For production, this should be ticker-based
+}
+
+func (a *App) ExportLogs(logs []string) (string, error) {
+	return a.runner.ExportLogs(logs)
+}
+
+func (a *App) OpenDiskManager() string {
+	a.runner.RunCommand("diskmgmt.msc")
+	return "Success"
 }
 
 func (a *App) StopRepair() {

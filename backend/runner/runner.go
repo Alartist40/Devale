@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -330,6 +331,18 @@ func (r *CommandRunner) ClearResume() error {
 		return nil
 	}
 	return r.runCommandInternal("schtasks /delete /tn \"DevAleResume\" /f", true)
+}
+
+func (r *CommandRunner) ExportLogs(logs []string) (string, error) {
+	content := strings.Join(logs, "\n")
+	path := "devale_repair_log.txt"
+	err := os.WriteFile(path, []byte(content), 0644)
+	if err != nil {
+		return "", err
+	}
+	// Full path for user
+	abs, _ := filepath.Abs(path)
+	return abs, nil
 }
 
 func (r *CommandRunner) GetApplications() ([]AppCategory, error) {

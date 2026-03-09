@@ -151,6 +151,12 @@ html, body {
     transform: scale(0.98);
     color: var(--accent);
     text-shadow: 0 0 10px var(--accent);
+    animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { text-shadow: 0 0 10px var(--accent); }
+    to { text-shadow: 0 0 25px var(--accent), 0 0 50px var(--accent); }
 }
 
 .btn-panic:hover {

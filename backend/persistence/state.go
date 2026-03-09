@@ -8,7 +8,10 @@ import (
 )
 
 type State struct {
-	Phase int `json:"phase"`
+	Phase      int      `json:"phase"`
+	LastStep   string   `json:"last_step,omitempty"`
+	Logs       []string `json:"logs,omitempty"`
+	IsComplete bool     `json:"is_complete"`
 }
 
 func getStoragePath() string {

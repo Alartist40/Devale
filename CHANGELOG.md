@@ -31,3 +31,16 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - **Logging Optimization:** Suppressed verbose per-file command output (DLL/MOF/DISM progress) to prevent terminal "glitching" and replaced it with concise "Loading..." sequences.
 - **Reliability:** Added manual "Reset Repair State" capability to recover from interrupted processes.
 - **Bug Fix:** Fixed AppX re-registration command syntax error and ensured the "Panic Button" correctly resets its active state.
+
+## [2.1.0] - Resilience & App Store Enhancements
+
+### Added
+- **Mock Windows Environment:** Introduced `Commander` interface and `MockCommander` for simulating Windows system responses in testing/CI.
+- **Categorized App Store:** Transitioned to a data-driven `applications.json` with categories (Browsers, Developer Tools, Game Development, Utilities).
+- **Repair Resilience:** Implemented `defer` blocks in critical repair phases (WMI) to ensure system services are re-enabled if the app is interrupted.
+
+### Changed
+- **Persistence:** Enhanced state tracking to include `LastStep` and `Logs` for more granular progress monitoring.
+
+### Fixed
+- **Phase 5 Reliability:** Ensured WMI services are always re-enabled even if intermediate repair steps fail or are cancelled.

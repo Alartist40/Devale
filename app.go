@@ -39,6 +39,10 @@ func (a *App) RunCommand(cmd string) string {
 	return "Success"
 }
 
+func (a *App) GetApplications() ([]runner.AppCategory, error) {
+	return a.runner.GetApplications()
+}
+
 func (a *App) StopRepair() {
 	a.runner.StopCommand()
 }

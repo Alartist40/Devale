@@ -37,3 +37,7 @@ export function ScheduleResume() {
 export function StopRepair() {
   return window['go']['main']['App']['StopRepair']();
 }
+
+export function GetApplications() {
+  return window['go']['main']['App']['GetApplications']();
+}

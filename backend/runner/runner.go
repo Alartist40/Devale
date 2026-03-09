@@ -3,6 +3,8 @@ package runner
 import (
 	"bufio"
 	"context"
+	"devale-v2/backend/persistence"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -25,10 +27,21 @@ type CommandRunner struct {
 	mu         sync.Mutex
 	cancelMu   sync.Mutex
 	cancelFunc context.CancelFunc
+	commander  Commander
 }
 
 func NewCommandRunner(ctx context.Context) *CommandRunner {
-	return &CommandRunner{ctx: ctx}
+	return &CommandRunner{
+		ctx:       ctx,
+		commander: &RealCommander{},
+	}
+}
+
+// SetCommander allows swapping the execution engine (e.g. for testing)
+func (r *CommandRunner) SetCommander(c Commander) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.commander = c
 }
 
 func (r *CommandRunner) RunCommand(cmdStr string) error {
@@ -47,31 +60,27 @@ func (r *CommandRunner) RunCommand(cmdStr string) error {
 		r.cancelMu.Unlock()
 	}()
 
+	pr, pw := io.Pipe()
+	go r.streamOutput(pr)
+
+	err := r.commander.Run(cmdCtx, cmdStr, pw, pw)
+	pw.Close()
+	return err
+}
+
+func (c *RealCommander) Run(ctx context.Context, cmdStr string, stdout, stderr io.Writer) error {
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.CommandContext(cmdCtx, "cmd", "/c", cmdStr)
+		cmd = exec.CommandContext(ctx, "cmd", "/c", cmdStr)
 		setHideWindow(cmd)
 	} else {
-		cmd = exec.CommandContext(cmdCtx, "sh", "-c", cmdStr)
+		cmd = exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	}
 
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("create stdout pipe: %w", err)
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return fmt.Errorf("create stderr pipe: %w", err)
-	}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-
-	go r.streamOutput(stdout)
-	go r.streamOutput(stderr)
-
-	return cmd.Wait()
+	return cmd.Run()
 }
 
 func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
@@ -113,7 +122,7 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 			continue
 		}
 
-		wailsRuntime.EventsEmit(r.ctx, "terminal:output", line)
+		r.Log(line)
 	}
 }
 
@@ -133,6 +142,15 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 	default:
 	}
 
+	updateLastStep := func(step string) {
+		state, err := persistence.LoadState()
+		if err == nil {
+			state.Phase = phase
+			state.LastStep = step
+			persistence.SaveState(state)
+		}
+	}
+
 	switch phase {
 	case 1: // DISM
 		r.Log("--- PHASE 1: DISM Health Check ---")
@@ -142,6 +160,7 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"dism /online /cleanup-image /restorehealth",
 		}
 		for _, s := range steps {
+			updateLastStep(s)
 			if err := r.RunCommand(s); err != nil {
 				return fmt.Errorf("phase 1 step failed (%s): %w", s, err)
 			}
@@ -169,6 +188,14 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 	case 5: // WMI
 		r.Log("--- PHASE 5: WMI Repair ---")
 		r.Log(">>> Stopping WMI services and re-registering core libraries...")
+
+		// Ensure we re-enable WMI no matter what happens
+		defer func() {
+			r.Log(">>> Ensuring WMI service is re-enabled...")
+			r.RunCommand("sc config winmgmt start= auto")
+			r.RunCommand("net start winmgmt")
+		}()
+
 		steps := []string{
 			"sc config winmgmt start= disabled",
 			"net stop winmgmt /y",
@@ -180,10 +207,18 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.mof *.mfl ^| findstr /v /i \"uninstall\"') do mofcomp %s",
 		}
 		for _, s := range steps {
+			updateLastStep(s)
 			r.Log(fmt.Sprintf("> %s", s))
 			if err := r.RunCommand(s); err != nil {
 				// WMI repairs can be finicky; log error but try to continue for certain steps
 				r.Log(fmt.Sprintf("! Warning: %s failed: %v", s, err))
+			}
+
+			// Check if we were cancelled
+			select {
+			case <-r.ctx.Done():
+				return fmt.Errorf("WMI phase interrupted")
+			default:
 			}
 		}
 	case 6: // AppX
@@ -195,7 +230,24 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 	return nil
 }
 
+type contextKey string
+
+const isTestKey contextKey = "isTest"
+
 func (r *CommandRunner) Log(msg string) {
+	if r.ctx == nil {
+		fmt.Printf("[LOG] %s\n", msg)
+		return
+	}
+
+	// Check for our custom test key
+	if val := r.ctx.Value(isTestKey); val != nil && val.(bool) {
+		fmt.Printf("[LOG] %s\n", msg)
+		return
+	}
+
+	// Safely attempt to emit, but don't crash
+	defer func() { recover() }()
 	wailsRuntime.EventsEmit(r.ctx, "terminal:output", msg)
 }
 
@@ -216,4 +268,24 @@ func (r *CommandRunner) ClearResume() error {
 		return nil
 	}
 	return r.RunCommand("schtasks /delete /tn \"DevAleResume\" /f")
+}
+
+func (r *CommandRunner) GetApplications() ([]AppCategory, error) {
+	// Attempt to load from relative path
+	data, err := os.ReadFile("backend/runner/applications.json")
+	if err != nil {
+		// Fallback for build environment
+		data, err = os.ReadFile("applications.json")
+		if err != nil {
+			return nil, fmt.Errorf("could not load applications.json: %w", err)
+		}
+	}
+
+	var result struct {
+		Categories []AppCategory `json:"categories"`
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		return nil, err
+	}
+	return result.Categories, nil
 }

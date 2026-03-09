@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { EventsOn } from '../wailsjs/runtime/runtime.js';
-    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair } from '../wailsjs/go/main/App.js';
+    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair, GetApplications } from '../wailsjs/go/main/App.js';
 
     let currentTab = 'Home';
     let logs: string[] = [];
@@ -10,6 +10,7 @@
     let repairPhase = 0;
     let isRepairing = false;
     let theme = 'light';
+    let appCategories: any[] = [];
 
     onMount(async () => {
         EventsOn('terminal:output', (line: string) => {
@@ -22,6 +23,7 @@
 
         try {
             sysInfo = await GetSystemInfo();
+            appCategories = await GetApplications();
             const lastPhase = await LoadState();
             if (lastPhase > 0) {
                 currentTab = 'Home';
@@ -194,16 +196,17 @@
             </div>
         {:else if currentTab === 'AppStore'}
             <h1 style="font-weight: 900;">APP STORE</h1>
-            <div class="card">
+            {#each appCategories as category}
+                <h3 style="color: var(--accent); margin-top: 30px; margin-bottom: 15px; font-weight: 800;">{category.name.toUpperCase()}</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    {#each ["Brave.Brave", "DuckDuckGo.DesktopBrowser", "Microsoft.VisualStudioCode", "7zip.7zip"] as id}
+                    {#each category.apps as app}
                         <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: bold; margin-left: 10px;">{id.split('.')[id.split('.').length-1]}</span>
-                            <button class="tool-btn" style="padding: 8px 15px; font-size: 12px; margin: 0;" on:click={() => RunCommand(`winget install ${id}`)}>INSTALL</button>
+                            <span style="font-weight: bold; margin-left: 15px;">{app.name}</span>
+                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id}`)}>INSTALL</button>
                         </div>
                     {/each}
                 </div>
-            </div>
+            {/each}
         {/if}
     </div>
 

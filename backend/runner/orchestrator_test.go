@@ -3,9 +3,35 @@ package runner
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 )
+
+func TestRepairPhases_FullSuite(t *testing.T) {
+	ctx := context.WithValue(context.Background(), isTestKey, true)
+	mock := &MockCommander{
+		Responses: map[string]MockResponse{
+			"dism /online /cleanup-image /checkhealth":   {Output: "No component store corruption detected."},
+			"chkdsk C: /f":                                {Output: "Cannot lock current drive.", Err: errors.New("exit status 3")},
+			"sfc /scannow":                                {Output: "Windows Resource Protection did not find any integrity violations."},
+			"dism /online /cleanup-image /resetbase":      {Output: "The operation completed successfully."},
+			"net stop winmgmt /y":                         {Output: "The WMI service was stopped successfully."},
+			"Get-AppXPackage":                             {Output: "AppX Packages re-registered successfully."},
+		},
+	}
+	runner := NewCommandRunner(ctx)
+	runner.SetCommander(mock)
+
+	for phase := 1; phase <= 6; phase++ {
+		t.Run(fmt.Sprintf("Phase %d", phase), func(t *testing.T) {
+			err := runner.RunRepairPhase(phase)
+			if err != nil && phase != 2 { // Phase 2 might "fail" with status 3 but we handle it
+				t.Errorf("Phase %d failed: %v", phase, err)
+			}
+		})
+	}
+}
 
 func TestRepairPhase2_RestartScenarios(t *testing.T) {
 	ctx := context.WithValue(context.Background(), isTestKey, true)

@@ -6,7 +6,7 @@
     let currentTab = 'Home';
     let logs: string[] = [];
     let commandInput = '';
-    let sysInfo = { cpu: 'Loading...', memory: 'Loading...', gpu: 'Loading...', disk: 'Loading...' };
+    let sysInfo = { cpu: 'Loading...', memory: 'Loading...', gpu: 'Loading...', disk: 'Loading...', os: 'Loading...', uptime: 'Loading...', disk_health: 'Loading...' };
     let repairPhase = 0;
     let isRepairing = false;
     let theme = 'light';
@@ -28,7 +28,7 @@
             if (lastPhase > 0) {
                 currentTab = 'Home';
                 repairPhase = lastPhase === 2 ? 3 : lastPhase;
-                logs = [...logs, `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`];
+                logs = [...logs, { text: `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`, type: 'highlight' }];
                 void continueRepair();
             }
         } catch (e) {
@@ -81,9 +81,9 @@
             await ClearResume();
             await SaveState(0);
             repairPhase = 0;
-            logs = [...logs, "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---"];
+            logs = [...logs, { text: "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---", type: 'success' }];
         } catch (e) {
-            logs = [...logs, `ERROR: ${e instanceof Error ? e.message : String(e)}`];
+            logs = [...logs, { text: `ERROR: ${e instanceof Error ? e.message : String(e)}`, type: 'error' }];
         } finally {
             isRepairing = false;
         }
@@ -94,12 +94,12 @@
         isRepairing = false;
         await SaveState(0);
         await ClearResume();
-        logs = [...logs, ">>> REPAIR STATE MANUALLY RESET"];
+        logs = [...logs, { text: ">>> REPAIR STATE MANUALLY RESET", type: 'highlight' }];
     }
 
     async function startFullRepair() {
         if (isRepairing) return;
-        logs = [...logs, "--- INITIATING FULL SYSTEM REPAIR (6 PHASES) ---"];
+        logs = [...logs, { text: "--- INITIATING FULL SYSTEM REPAIR (6 PHASES) ---", type: 'phase' }];
         repairPhase = 1;
         void continueRepair();
     }
@@ -107,7 +107,7 @@
     async function stopFullRepair() {
         if (!isRepairing) return;
         await StopRepair();
-        logs = [...logs, ">>> STOP REQUEST SENT"];
+        logs = [...logs, { text: ">>> STOP REQUEST SENT", type: 'highlight' }];
     }
 </script>
 
@@ -183,6 +183,14 @@
                     <h3 style="color: var(--accent); margin-top: 0;">STORAGE</h3>
                     <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.disk}</p>
                 </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">OPERATING SYSTEM</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.os}</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">DISK HEALTH</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem; color: #4caf50;">{sysInfo.disk_health}</p>
+                </div>
             </div>
         {:else if currentTab === 'Tools'}
             <h1 style="font-weight: 900;">MANUAL OVERRIDES</h1>
@@ -213,7 +221,7 @@
     <div class="terminal-area">
         <div id="terminal-logs" class="terminal-logs">
             {#each logs as log}
-                <div>{log}</div>
+                <div class="log-{log.type}">{log.text}</div>
             {/each}
         </div>
         <div class="terminal-input-row">

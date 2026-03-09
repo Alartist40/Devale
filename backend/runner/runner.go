@@ -45,8 +45,19 @@ func (r *CommandRunner) SetCommander(c Commander) {
 }
 
 func (r *CommandRunner) RunCommand(cmdStr string) error {
+	return r.runCommandInternal(cmdStr, false)
+}
+
+func (r *CommandRunner) runCommandInternal(cmdStr string, allowShell bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	// RESOURCE OPTIMIZATION: Check if the main application context is already cancelled
+	select {
+	case <-r.ctx.Done():
+		return r.ctx.Err()
+	default:
+	}
 
 	// Create a sub-context for this command
 	cmdCtx, cancel := context.WithCancel(r.ctx)
@@ -84,6 +95,9 @@ func (c *RealCommander) Run(ctx context.Context, cmdStr string, stdout, stderr i
 }
 
 func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
+	if reader == nil {
+		return
+	}
 	defer reader.Close()
 
 	var rdr io.Reader = reader
@@ -159,15 +173,28 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"dism /online /cleanup-image /scanhealth",
 			"dism /online /cleanup-image /restorehealth",
 		}
+
+		state, _ := persistence.LoadState()
+		foundLast := (state.Phase != phase || state.LastStep == "")
+
 		for _, s := range steps {
+			if !foundLast {
+				if state.LastStep == s {
+					foundLast = true
+					r.Log(fmt.Sprintf(">>> Skipping completed step: %s", s))
+				} else {
+					r.Log(fmt.Sprintf(">>> Skipping completed step: %s", s))
+				}
+				continue
+			}
 			updateLastStep(s)
-			if err := r.RunCommand(s); err != nil {
+			if err := r.runCommandInternal(s, true); err != nil {
 				return fmt.Errorf("phase 1 step failed (%s): %w", s, err)
 			}
 		}
 	case 2: // CHKDSK
 		r.Log("--- PHASE 2: Scheduling CHKDSK ---")
-		err := r.RunCommand("echo Y | chkdsk C: /f")
+		err := r.runCommandInternal("echo Y | chkdsk C: /f", true)
 		if err != nil {
 			// Exit status 3 is common when chkdsk schedules successfully but cannot lock the drive
 			if strings.Contains(err.Error(), "exit status 3") {
@@ -180,11 +207,11 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 	case 3: // SFC
 		r.Log("--- PHASE 3: SFC Scan ---")
 		r.Log(">>> Beginning system scan. This will take 10-15 minutes...")
-		return r.RunCommand("sfc /scannow")
+		return r.runCommandInternal("sfc /scannow", true)
 	case 4: // Component Cleanup
 		r.Log("--- PHASE 4: Component Store Cleanup ---")
 		r.Log(">>> Cleaning up component store. This will take several minutes...")
-		return r.RunCommand("dism /online /cleanup-image /startcomponentcleanup /resetbase")
+		return r.runCommandInternal("dism /online /cleanup-image /startcomponentcleanup /resetbase", true)
 	case 5: // WMI
 		r.Log("--- PHASE 5: WMI Repair ---")
 		r.Log(">>> Stopping WMI services and re-registering core libraries...")
@@ -192,8 +219,8 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		// Ensure we re-enable WMI no matter what happens
 		defer func() {
 			r.Log(">>> Ensuring WMI service is re-enabled...")
-			r.RunCommand("sc config winmgmt start= auto")
-			r.RunCommand("net start winmgmt")
+			r.runCommandInternal("sc config winmgmt start= auto", true)
+			r.runCommandInternal("net start winmgmt", true)
 		}()
 
 		steps := []string{
@@ -206,10 +233,21 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 			"net start winmgmt",
 			"cd /d %windir%\\system32\\wbem && for /f %s in ('dir /b *.mof *.mfl ^| findstr /v /i \"uninstall\"') do mofcomp %s",
 		}
+
+		state, _ := persistence.LoadState()
+		foundLast := (state.Phase != phase || state.LastStep == "")
+
 		for _, s := range steps {
+			if !foundLast {
+				if state.LastStep == s {
+					foundLast = true
+				}
+				r.Log(fmt.Sprintf(">>> Skipping completed step: %s", s))
+				continue
+			}
 			updateLastStep(s)
 			r.Log(fmt.Sprintf("> %s", s))
-			if err := r.RunCommand(s); err != nil {
+			if err := r.runCommandInternal(s, true); err != nil {
 				// WMI repairs can be finicky; log error but try to continue for certain steps
 				r.Log(fmt.Sprintf("! Warning: %s failed: %v", s, err))
 			}
@@ -223,7 +261,7 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		}
 	case 6: // AppX
 		r.Log("--- PHASE 6: AppX Re-registration ---")
-		return r.RunCommand("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\" -ErrorAction SilentlyContinue }\"")
+		return r.runCommandInternal("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\" -ErrorAction SilentlyContinue }\"", true)
 	default:
 		return fmt.Errorf("invalid repair phase: %d", phase)
 	}
@@ -260,14 +298,14 @@ func (r *CommandRunner) ScheduleResume() error {
 		exe = "devale-v2.exe"
 	}
 	cmd := fmt.Sprintf("schtasks /create /tn \"DevAleResume\" /tr \"\\\"%s\\\"\" /sc onlogon /rl highest /f", exe)
-	return r.RunCommand(cmd)
+	return r.runCommandInternal(cmd, true)
 }
 
 func (r *CommandRunner) ClearResume() error {
 	if runtime.GOOS != "windows" {
 		return nil
 	}
-	return r.RunCommand("schtasks /delete /tn \"DevAleResume\" /f")
+	return r.runCommandInternal("schtasks /delete /tn \"DevAleResume\" /f", true)
 }
 
 func (r *CommandRunner) GetApplications() ([]AppCategory, error) {

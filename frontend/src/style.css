@@ -179,6 +179,12 @@ html, body {
     color: var(--terminal-text);
 }
 
+.log-phase { color: var(--accent); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); margin: 5px 0; padding-bottom: 2px; }
+.log-error { color: #ff4d4d; }
+.log-highlight { color: #00f3ff; font-weight: bold; }
+.log-success { color: #4caf50; font-weight: bold; }
+.log-user { color: #e0e0e0; font-style: italic; opacity: 0.8; }
+
 /* Custom Scrollbar for Terminal */
 .terminal-logs::-webkit-scrollbar {
     width: 8px;

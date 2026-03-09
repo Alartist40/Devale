@@ -32,6 +32,15 @@ func (a *App) Greet(name string) string {
 }
 
 func (a *App) RunCommand(cmd string) string {
+	// SANITIZATION: Check for malicious command injection patterns
+	// in user-provided strings from the terminal
+	restricted := []string{"&", "|", ";", ">", "<", "`", "$"}
+	for _, char := range restricted {
+		if strings.Contains(cmd, char) {
+			return fmt.Sprintf("Error: Restricted character '%s' detected. Command blocked for security.", char)
+		}
+	}
+
 	err := a.runner.RunCommand(cmd)
 	if err != nil {
 		return fmt.Sprintf("Error: %s", err)

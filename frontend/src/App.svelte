@@ -27,7 +27,7 @@
         });
 
         EventsOn('terminal:output', (line: string) => {
-            logs = [...logs, line];
+            logs = [...logs, { text: line, type: 'info' }];
             setTimeout(() => {
                 const el = document.getElementById('terminal-logs');
                 if (el) el.scrollTop = el.scrollHeight;
@@ -58,8 +58,11 @@
         if (e.key === 'Enter' && commandInput.trim()) {
             const cmd = commandInput;
             commandInput = '';
-            logs = [...logs, `USER@DEVALE > ${cmd}`];
-            await RunCommand(cmd);
+            logs = [...logs, { text: `USER@DEVALE > ${cmd}`, type: 'user' }];
+            const result = await RunCommand(cmd);
+            if (result.startsWith("Error:")) {
+                logs = [...logs, { text: result, type: 'error' }];
+            }
         }
     }
 
@@ -124,7 +127,7 @@
     }
 
     async function handleExport() {
-        const textLogs = logs.map(l => l.text);
+        const textLogs = logs.map(l => typeof l === 'string' ? l : l.text);
         const path = await ExportLogs(textLogs);
         logs = [...logs, { text: `>>> LOGS EXPORTED TO: ${path}`, type: 'success' }];
     }
@@ -151,8 +154,8 @@
         {#if currentTab === 'Home'}
             <div style="text-align: center;">
                 <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; font-size: 11px; font-weight: 900;">
-                    <div style="color: {sysInfo.battery.level < 20 && sysInfo.battery.status !== 'AC Power' ? '#ff4d4d' : 'var(--text-dim)'};">
-                        BATTERY: {sysInfo.battery.level}% ({sysInfo.battery.status})
+                    <div style="color: {sysInfo.battery.level < 20 && sysInfo.battery.level >= 0 && sysInfo.battery.status !== 'AC Power' ? '#ff4d4d' : 'var(--text-dim)'};">
+                        BATTERY: {sysInfo.battery.level >= 0 ? sysInfo.battery.level + '%' : 'N/A'} ({sysInfo.battery.status})
                     </div>
                     <div style="color: var(--text-dim);">
                         UPDATES: PENDING RESTART
@@ -202,16 +205,16 @@
                     <h3 style="color: var(--accent); margin-top: 0;">PROCESSOR</h3>
                     <p style="font-family: monospace; font-size: 1.1rem; margin-bottom: 10px;">{sysInfo.cpu}</p>
                     <div style="height: 40px; background: var(--bg-main); border-radius: 10px; box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); overflow: hidden; position: relative;">
-                        <div style="width: {sysInfo.cpu_usage}%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff4d4d); transition: width 0.5s;"></div>
-                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.cpu_usage}%</span>
+                        <div style="width: {sysInfo.cpu_usage >= 0 ? sysInfo.cpu_usage : 0}%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff4d4d); transition: width 0.5s;"></div>
+                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.cpu_usage >= 0 ? sysInfo.cpu_usage + '%' : 'N/A'}</span>
                     </div>
                 </div>
                 <div class="card">
                     <h3 style="color: var(--accent); margin-top: 0;">MEMORY</h3>
                     <p style="font-family: monospace; font-size: 1.1rem; margin-bottom: 10px;">{sysInfo.memory}</p>
                     <div style="height: 40px; background: var(--bg-main); border-radius: 10px; box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); overflow: hidden; position: relative;">
-                        <div style="width: {sysInfo.mem_usage}%; height: 100%; background: linear-gradient(90deg, #00f3ff, #0077ff); transition: width 0.5s;"></div>
-                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.mem_usage}%</span>
+                        <div style="width: {sysInfo.mem_usage >= 0 ? sysInfo.mem_usage : 0}%; height: 100%; background: linear-gradient(90deg, #00f3ff, #0077ff); transition: width 0.5s;"></div>
+                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.mem_usage >= 0 ? sysInfo.mem_usage + '%' : 'N/A'}</span>
                     </div>
                 </div>
                 <div class="card">
@@ -246,7 +249,7 @@
                     <div class="card" style="padding: 15px;">
                         <h4 style="margin: 0; color: var(--accent);">{part.name} ({part.label})</h4>
                         <div style="margin-top: 10px; height: 10px; border-radius: 5px; background: var(--shadow-dark); overflow: hidden;">
-                            <div style="width: {((part.total - part.free) / part.total) * 100}%; height: 100%; background: var(--accent);"></div>
+                            <div style="width: {part.total > 0 ? ((part.total - part.free) / part.total) * 100 : 0}%; height: 100%; background: var(--accent);"></div>
                         </div>
                         <p style="font-size: 12px; margin-top: 5px; color: var(--text-dim);">{part.total - part.free}GB used / {part.total}GB total</p>
                     </div>

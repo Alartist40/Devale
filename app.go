@@ -87,12 +87,18 @@ func (a *App) ExportLogs(logs []string) (string, error) {
 }
 
 func (a *App) OpenDiskManager() string {
-	a.runner.RunCommand("diskmgmt.msc")
+	err := a.runner.RunCommand("diskmgmt.msc")
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err)
+	}
 	return "Success"
 }
 
 func (a *App) OpenGodMode() string {
-	a.runner.RunCommand("explorer shell:::{ED7BA470-8E54-465E-825C-99712043E01C}")
+	err := a.runner.RunCommand("explorer shell:::{ED7BA470-8E54-465E-825C-99712043E01C}")
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err)
+	}
 	return "Success"
 }
 
@@ -108,7 +114,12 @@ func (a *App) SaveState(phase int) error {
 	if phase < 0 || phase > 6 {
 		return fmt.Errorf("invalid phase: %d", phase)
 	}
-	return persistence.SaveState(persistence.State{Phase: phase})
+	state, err := persistence.LoadState()
+	if err != nil {
+		state = persistence.State{}
+	}
+	state.Phase = phase
+	return persistence.SaveState(state)
 }
 
 func (a *App) LoadState() (int, error) {

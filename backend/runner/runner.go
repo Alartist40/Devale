@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"devale-v2/backend/persistence"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -171,11 +172,13 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 
 	updateLastStep := func(step string) {
 		state, err := persistence.LoadState()
-		if err == nil {
-			state.Phase = phase
-			state.LastStep = step
-			persistence.SaveState(state)
+		if err != nil {
+			r.Log(fmt.Sprintf("! Warning: Could not load state for tracking: %v", err))
+			return
 		}
+		state.Phase = phase
+		state.LastStep = step
+		persistence.SaveState(state)
 	}
 
 	switch phase {
@@ -232,8 +235,12 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		// Ensure we re-enable WMI no matter what happens
 		defer func() {
 			r.Log(">>> Ensuring WMI service is re-enabled...")
-			r.runCommandInternal("sc config winmgmt start= auto", true)
-			r.runCommandInternal("net start winmgmt", true)
+			if err := r.runCommandInternal("sc config winmgmt start= auto", true); err != nil {
+				r.Log(fmt.Sprintf("!!! CRITICAL: Failed to re-enable winmgmt: %v", err))
+			}
+			if err := r.runCommandInternal("net start winmgmt", true); err != nil {
+				r.Log(fmt.Sprintf("!!! WARNING: Failed to start winmgmt: %v", err))
+			}
 		}()
 
 		steps := []string{
@@ -333,6 +340,9 @@ func (r *CommandRunner) ClearResume() error {
 	return r.runCommandInternal("schtasks /delete /tn \"DevAleResume\" /f", true)
 }
 
+//go:embed applications.json
+var applicationsJSON []byte
+
 func (r *CommandRunner) ExportLogs(logs []string) (string, error) {
 	content := strings.Join(logs, "\n")
 	path := "devale_repair_log.txt"
@@ -346,20 +356,10 @@ func (r *CommandRunner) ExportLogs(logs []string) (string, error) {
 }
 
 func (r *CommandRunner) GetApplications() ([]AppCategory, error) {
-	// Attempt to load from relative path
-	data, err := os.ReadFile("backend/runner/applications.json")
-	if err != nil {
-		// Fallback for build environment
-		data, err = os.ReadFile("applications.json")
-		if err != nil {
-			return nil, fmt.Errorf("could not load applications.json: %w", err)
-		}
-	}
-
 	var result struct {
 		Categories []AppCategory `json:"categories"`
 	}
-	if err := json.Unmarshal(data, &result); err != nil {
+	if err := json.Unmarshal(applicationsJSON, &result); err != nil {
 		return nil, err
 	}
 	return result.Categories, nil

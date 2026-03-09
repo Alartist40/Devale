@@ -73,14 +73,14 @@ func GetSystemInfo() (*Info, error) {
 
 	return &Info{
 		CPU:        cpuInfo,
-		CPUUsage:   12.5, // Mock value
+		CPUUsage:   -1.0, // Placeholder
 		Memory:     memInfo,
-		MemUsage:   45.2, // Mock value
+		MemUsage:   -1.0, // Placeholder
 		GPU:        gpuInfo,
 		Disk:       diskInfo,
 		Partitions: getPartitions(),
 		OS:         osInfo,
-		Uptime:     "Check Task Manager",
+		Uptime:     "N/A",
 		DiskHealth: getDiskHealth(),
 		Network:    getNetworkStats(),
 		Battery:    getBatteryStats(),
@@ -96,11 +96,11 @@ func getPartitions() []Partition {
 }
 
 func getNetworkStats() NetworkStats {
-	return NetworkStats{Status: "Online", Ping: "12ms"}
+	return NetworkStats{Status: "Checking...", Ping: "N/A"}
 }
 
 func getBatteryStats() BatteryStats {
-	return BatteryStats{Status: "AC Power", Level: 100}
+	return BatteryStats{Status: "N/A", Level: -1}
 }
 
 func getDiskHealth() string {

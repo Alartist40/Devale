@@ -28,6 +28,7 @@ Since the primary development environment is Linux, we implemented a `Commander`
 - **Resilience:** Verified that hardware sensors handle missing data gracefully.
 - **Real Data:** implemented `wmic` integration for actual Disk Health status.
 - **Master Settings:** Confirmed functionality of the "God Mode" shortcut.
+- **Telemetry:** CPU, RAM, Battery, and Network currently show "N/A" placeholders pending future API integration to avoid misleading data.
 
 ## 4. Issue Log & Resolutions
 | Issue | Severity | Status | Resolution |

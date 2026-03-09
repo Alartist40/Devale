@@ -39,7 +39,7 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - **Categorized App Store:** Transitioned to a data-driven `applications.json` with categories (Browsers, Developer Tools, Gaming, Utilities) and expanded software list (Unreal, Steam, etc.).
 - **Safety Backups:** Integrated automatic Windows System Restore Point creation before starting repairs.
 - **Security:** Added Administrator privilege verification on startup.
-- **Diagnostics:** implemented real-time Disk Health monitoring via WMIC.
+- **Diagnostics:** implemented Disk Health monitoring via WMIC and detailed Host/OS telemetry.
 - **Terminal UX:** Overhauled with a typed, color-coded logging system (Phase, Error, Success, User, Highlight).
 - **Partition Map:** Added visual storage breakdown for all system partitions.
 - **Pre-Flight Dashboard:** Added real-time Battery, Pending Updates, and Network Ping indicators to the Home screen.

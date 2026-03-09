@@ -15,7 +15,7 @@ We implemented a "Trust Boundary" in `runner.go`.
 Before Phase 1 (DISM), the app now automatically creates a System Restore Point using `Checkpoint-Computer`. This provides a critical safety net for users.
 
 ### 4. Real System Diagnostics
-We moved away from static hardware placeholders. The app now uses `wmic` to pull real-time Disk Health and `ghw` for detailed Host/OS info.
+The app now uses `wmic` to pull real-time Disk Health and `ghw` for detailed Host/OS info. Note: Real-time CPU/RAM usage and Battery metrics currently use "N/A" placeholders to avoid misleading users until high-frequency telemetry APIs are finalized.
 
 ### 5. Professional Terminal UX
 The terminal now uses a color-coded log system. Users can visually distinguish between informational logs (green/white), phase headers (orange), and critical errors (red).

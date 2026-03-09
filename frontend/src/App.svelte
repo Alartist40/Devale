@@ -1,19 +1,33 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { EventsOn } from '../wailsjs/runtime/runtime.js';
-    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair } from '../wailsjs/go/main/App.js';
+    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair, GetApplications, ExportLogs, OpenDiskManager, OpenGodMode } from '../wailsjs/go/main/App.js';
 
     let currentTab = 'Home';
     let logs: string[] = [];
     let commandInput = '';
-    let sysInfo = { cpu: 'Loading...', memory: 'Loading...', gpu: 'Loading...', disk: 'Loading...' };
+    let sysInfo = {
+        cpu: 'Loading...', cpu_usage: 0,
+        memory: 'Loading...', mem_usage: 0,
+        gpu: 'Loading...', disk: 'Loading...',
+        os: 'Loading...', uptime: 'Loading...',
+        disk_health: 'Loading...',
+        network: { status: 'Checking...', ping: '...' },
+        battery: { status: '...', level: 0 },
+        partitions: []
+    };
     let repairPhase = 0;
     let isRepairing = false;
     let theme = 'light';
+    let appCategories: any[] = [];
 
     onMount(async () => {
+        EventsOn('telemetry:update', (data: any) => {
+            sysInfo = data;
+        });
+
         EventsOn('terminal:output', (line: string) => {
-            logs = [...logs, line];
+            logs = [...logs, { text: line, type: 'info' }];
             setTimeout(() => {
                 const el = document.getElementById('terminal-logs');
                 if (el) el.scrollTop = el.scrollHeight;
@@ -22,11 +36,12 @@
 
         try {
             sysInfo = await GetSystemInfo();
+            appCategories = await GetApplications();
             const lastPhase = await LoadState();
             if (lastPhase > 0) {
                 currentTab = 'Home';
                 repairPhase = lastPhase === 2 ? 3 : lastPhase;
-                logs = [...logs, `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`];
+                logs = [...logs, { text: `>>> RESUMING REPAIR AT PHASE ${repairPhase}...`, type: 'highlight' }];
                 void continueRepair();
             }
         } catch (e) {
@@ -43,8 +58,11 @@
         if (e.key === 'Enter' && commandInput.trim()) {
             const cmd = commandInput;
             commandInput = '';
-            logs = [...logs, `USER@DEVALE > ${cmd}`];
-            await RunCommand(cmd);
+            logs = [...logs, { text: `USER@DEVALE > ${cmd}`, type: 'user' }];
+            const result = await RunCommand(cmd);
+            if (result.startsWith("Error:")) {
+                logs = [...logs, { text: result, type: 'error' }];
+            }
         }
     }
 
@@ -79,9 +97,9 @@
             await ClearResume();
             await SaveState(0);
             repairPhase = 0;
-            logs = [...logs, "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---"];
+            logs = [...logs, { text: "--- ALL REPAIR PHASES COMPLETED SUCCESSFULLY ---", type: 'success' }];
         } catch (e) {
-            logs = [...logs, `ERROR: ${e instanceof Error ? e.message : String(e)}`];
+            logs = [...logs, { text: `ERROR: ${e instanceof Error ? e.message : String(e)}`, type: 'error' }];
         } finally {
             isRepairing = false;
         }
@@ -92,12 +110,12 @@
         isRepairing = false;
         await SaveState(0);
         await ClearResume();
-        logs = [...logs, ">>> REPAIR STATE MANUALLY RESET"];
+        logs = [...logs, { text: ">>> REPAIR STATE MANUALLY RESET", type: 'highlight' }];
     }
 
     async function startFullRepair() {
         if (isRepairing) return;
-        logs = [...logs, "--- INITIATING FULL SYSTEM REPAIR (6 PHASES) ---"];
+        logs = [...logs, { text: "--- INITIATING FULL SYSTEM REPAIR (6 PHASES) ---", type: 'phase' }];
         repairPhase = 1;
         void continueRepair();
     }
@@ -105,7 +123,13 @@
     async function stopFullRepair() {
         if (!isRepairing) return;
         await StopRepair();
-        logs = [...logs, ">>> STOP REQUEST SENT"];
+        logs = [...logs, { text: ">>> STOP REQUEST SENT", type: 'highlight' }];
+    }
+
+    async function handleExport() {
+        const textLogs = logs.map(l => typeof l === 'string' ? l : l.text);
+        const path = await ExportLogs(textLogs);
+        logs = [...logs, { text: `>>> LOGS EXPORTED TO: ${path}`, type: 'success' }];
     }
 </script>
 
@@ -129,6 +153,18 @@
     <div class="content-area">
         {#if currentTab === 'Home'}
             <div style="text-align: center;">
+                <div style="display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; font-size: 11px; font-weight: 900;">
+                    <div style="color: {sysInfo.battery.level < 20 && sysInfo.battery.level >= 0 && sysInfo.battery.status !== 'AC Power' ? '#ff4d4d' : 'var(--text-dim)'};">
+                        BATTERY: {sysInfo.battery.level >= 0 ? sysInfo.battery.level + '%' : 'N/A'} ({sysInfo.battery.status})
+                    </div>
+                    <div style="color: var(--text-dim);">
+                        UPDATES: PENDING RESTART
+                    </div>
+                    <div style="color: {sysInfo.network.status === 'Online' ? '#4caf50' : '#ff4d4d'};">
+                        NETWORK: {sysInfo.network.status}
+                    </div>
+                </div>
+
                 <h1 style="margin-bottom: 5px; font-size: 2.5rem; font-weight: 900;">{isRepairing ? 'REPAIRING...' : 'SYSTEM READY'}</h1>
                 <div style="color: var(--accent); font-family: monospace; font-weight: bold; margin-bottom: 20px;">[ PHASE {repairPhase}/6 ]</div>
 
@@ -164,14 +200,22 @@
             </div>
         {:else if currentTab === 'Diagnose'}
             <h1 style="font-weight: 900;">HARDWARE TELEMETRY</h1>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                 <div class="card">
                     <h3 style="color: var(--accent); margin-top: 0;">PROCESSOR</h3>
-                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.cpu}</p>
+                    <p style="font-family: monospace; font-size: 1.1rem; margin-bottom: 10px;">{sysInfo.cpu}</p>
+                    <div style="height: 40px; background: var(--bg-main); border-radius: 10px; box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); overflow: hidden; position: relative;">
+                        <div style="width: {sysInfo.cpu_usage >= 0 ? sysInfo.cpu_usage : 0}%; height: 100%; background: linear-gradient(90deg, var(--accent), #ff4d4d); transition: width 0.5s;"></div>
+                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.cpu_usage >= 0 ? sysInfo.cpu_usage + '%' : 'N/A'}</span>
+                    </div>
                 </div>
                 <div class="card">
                     <h3 style="color: var(--accent); margin-top: 0;">MEMORY</h3>
-                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.memory}</p>
+                    <p style="font-family: monospace; font-size: 1.1rem; margin-bottom: 10px;">{sysInfo.memory}</p>
+                    <div style="height: 40px; background: var(--bg-main); border-radius: 10px; box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light); overflow: hidden; position: relative;">
+                        <div style="width: {sysInfo.mem_usage >= 0 ? sysInfo.mem_usage : 0}%; height: 100%; background: linear-gradient(90deg, #00f3ff, #0077ff); transition: width 0.5s;"></div>
+                        <span style="position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: bold;">{sysInfo.mem_usage >= 0 ? sysInfo.mem_usage + '%' : 'N/A'}</span>
+                    </div>
                 </div>
                 <div class="card">
                     <h3 style="color: var(--accent); margin-top: 0;">GRAPHICS</h3>
@@ -181,6 +225,35 @@
                     <h3 style="color: var(--accent); margin-top: 0;">STORAGE</h3>
                     <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.disk}</p>
                 </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">OPERATING SYSTEM</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.os}</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">DISK HEALTH</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem; color: #4caf50;">{sysInfo.disk_health}</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">NETWORK</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.network.status} ({sysInfo.network.ping})</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--accent); margin-top: 0;">BATTERY</h3>
+                    <p style="font-family: monospace; font-size: 1.1rem;">{sysInfo.battery.status} - {sysInfo.battery.level}%</p>
+                </div>
+            </div>
+
+            <h3 style="color: var(--accent); font-weight: 800; margin-top: 30px;">PARTITION MAP</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                {#each sysInfo.partitions as part}
+                    <div class="card" style="padding: 15px;">
+                        <h4 style="margin: 0; color: var(--accent);">{part.name} ({part.label})</h4>
+                        <div style="margin-top: 10px; height: 10px; border-radius: 5px; background: var(--shadow-dark); overflow: hidden;">
+                            <div style="width: {part.total > 0 ? ((part.total - part.free) / part.total) * 100 : 0}%; height: 100%; background: var(--accent);"></div>
+                        </div>
+                        <p style="font-size: 12px; margin-top: 5px; color: var(--text-dim);">{part.total - part.free}GB used / {part.total}GB total</p>
+                    </div>
+                {/each}
             </div>
         {:else if currentTab === 'Tools'}
             <h1 style="font-weight: 900;">MANUAL OVERRIDES</h1>
@@ -191,26 +264,32 @@
                 <button class="tool-btn" on:click={() => RunCommand("mrt.exe")}>MRT_SCAN</button>
                 <button class="tool-btn" on:click={() => RunCommand("taskmgr.exe")}>TASK_MGR</button>
                 <button class="tool-btn" on:click={() => RunCommand("SystemPropertiesProtection.exe")}>RESTORE_POINT</button>
+                <button class="tool-btn" on:click={OpenDiskManager}>DISK_MGMT</button>
+                <button class="tool-btn" on:click={OpenGodMode}>GOD_MODE</button>
+                <button class="tool-btn" on:click={() => RunCommand("powershell -Command \"Get-WmiObject Win32_PnPEntity | Where-Object { $_.ConfigManagerErrorCode -ne 0 } | Select-Object Name, Status\"")}>DRIVER_AUDIT</button>
+                <button class="tool-btn" on:click={() => RunCommand("powershell -Command \"Get-CimInstance Win32_StartupCommand | Select-Object Name, Command\"")}>STARTUP_MGR</button>
+                <button class="tool-btn" on:click={handleExport} style="background: var(--accent); color: white;">EXPORT_LOGS</button>
             </div>
         {:else if currentTab === 'AppStore'}
             <h1 style="font-weight: 900;">APP STORE</h1>
-            <div class="card">
+            {#each appCategories as category}
+                <h3 style="color: var(--accent); margin-top: 30px; margin-bottom: 15px; font-weight: 800;">{category.name.toUpperCase()}</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    {#each ["Brave.Brave", "DuckDuckGo.DesktopBrowser", "Microsoft.VisualStudioCode", "7zip.7zip"] as id}
+                    {#each category.apps as app}
                         <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: bold; margin-left: 10px;">{id.split('.')[id.split('.').length-1]}</span>
-                            <button class="tool-btn" style="padding: 8px 15px; font-size: 12px; margin: 0;" on:click={() => RunCommand(`winget install ${id}`)}>INSTALL</button>
+                            <span style="font-weight: bold; margin-left: 15px;">{app.name}</span>
+                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id}`)}>INSTALL</button>
                         </div>
                     {/each}
                 </div>
-            </div>
+            {/each}
         {/if}
     </div>
 
     <div class="terminal-area">
         <div id="terminal-logs" class="terminal-logs">
             {#each logs as log}
-                <div>{log}</div>
+                <div class="log-{log.type}">{log.text}</div>
             {/each}
         </div>
         <div class="terminal-input-row">

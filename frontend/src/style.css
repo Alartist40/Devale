@@ -151,6 +151,12 @@ html, body {
     transform: scale(0.98);
     color: var(--accent);
     text-shadow: 0 0 10px var(--accent);
+    animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { text-shadow: 0 0 10px var(--accent); }
+    to { text-shadow: 0 0 25px var(--accent), 0 0 50px var(--accent); }
 }
 
 .btn-panic:hover {
@@ -178,6 +184,12 @@ html, body {
     overflow-y: auto;
     color: var(--terminal-text);
 }
+
+.log-phase { color: var(--accent); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); margin: 5px 0; padding-bottom: 2px; }
+.log-error { color: #ff4d4d; }
+.log-highlight { color: #00f3ff; font-weight: bold; }
+.log-success { color: #4caf50; font-weight: bold; }
+.log-user { color: #e0e0e0; font-style: italic; opacity: 0.8; }
 
 /* Custom Scrollbar for Terminal */
 .terminal-logs::-webkit-scrollbar {

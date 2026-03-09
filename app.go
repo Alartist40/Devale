@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 	"devale-v2/backend/runner"
 	"devale-v2/backend/sysinfo"
 	"devale-v2/backend/persistence"
+	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -24,6 +27,17 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.runner = runner.NewCommandRunner(ctx)
+
+	// Start background telemetry loop
+	go a.telemetryLoop()
+
+	if !runner.IsAdmin() {
+		a.runner.Log("! ERROR: DevAle is NOT running with Administrator privileges.")
+		a.runner.Log("! Some system repair features may fail to execute correctly.")
+		a.runner.Log("! Please restart the application as Administrator.")
+	} else {
+		a.runner.Log(">>> Administrator privileges verified.")
+	}
 }
 
 // Greet returns a greeting for the given name
@@ -32,7 +46,56 @@ func (a *App) Greet(name string) string {
 }
 
 func (a *App) RunCommand(cmd string) string {
+	// SANITIZATION: Check for malicious command injection patterns
+	// in user-provided strings from the terminal
+	restricted := []string{"&", "|", ";", ">", "<", "`", "$"}
+	for _, char := range restricted {
+		if strings.Contains(cmd, char) {
+			return fmt.Sprintf("Error: Restricted character '%s' detected. Command blocked for security.", char)
+		}
+	}
+
 	err := a.runner.RunCommand(cmd)
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err)
+	}
+	return "Success"
+}
+
+func (a *App) GetApplications() ([]runner.AppCategory, error) {
+	return a.runner.GetApplications()
+}
+
+func (a *App) telemetryLoop() {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-a.ctx.Done():
+			return
+		case <-ticker.C:
+			info, err := sysinfo.GetSystemInfo()
+			if err == nil {
+				wailsRuntime.EventsEmit(a.ctx, "telemetry:update", info)
+			}
+		}
+	}
+}
+
+func (a *App) ExportLogs(logs []string) (string, error) {
+	return a.runner.ExportLogs(logs)
+}
+
+func (a *App) OpenDiskManager() string {
+	err := a.runner.RunCommand("diskmgmt.msc")
+	if err != nil {
+		return fmt.Sprintf("Error: %s", err)
+	}
+	return "Success"
+}
+
+func (a *App) OpenGodMode() string {
+	err := a.runner.RunCommand("explorer shell:::{ED7BA470-8E54-465E-825C-99712043E01C}")
 	if err != nil {
 		return fmt.Sprintf("Error: %s", err)
 	}
@@ -51,7 +114,12 @@ func (a *App) SaveState(phase int) error {
 	if phase < 0 || phase > 6 {
 		return fmt.Errorf("invalid phase: %d", phase)
 	}
-	return persistence.SaveState(persistence.State{Phase: phase})
+	state, err := persistence.LoadState()
+	if err != nil {
+		state = persistence.State{}
+	}
+	state.Phase = phase
+	return persistence.SaveState(state)
 }
 
 func (a *App) LoadState() (int, error) {

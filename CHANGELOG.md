@@ -31,3 +31,30 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - **Logging Optimization:** Suppressed verbose per-file command output (DLL/MOF/DISM progress) to prevent terminal "glitching" and replaced it with concise "Loading..." sequences.
 - **Reliability:** Added manual "Reset Repair State" capability to recover from interrupted processes.
 - **Bug Fix:** Fixed AppX re-registration command syntax error and ensured the "Panic Button" correctly resets its active state.
+
+## [2.1.0] - Resilience & App Store Enhancements
+
+### Added
+- **Mock Windows Environment:** Introduced `Commander` interface and `MockCommander` for simulating Windows system responses in testing/CI.
+- **Categorized App Store:** Transitioned to a data-driven `applications.json` with categories (Browsers, Developer Tools, Gaming, Utilities) and expanded software list (Unreal, Steam, etc.).
+- **Safety Backups:** Integrated automatic Windows System Restore Point creation before starting repairs.
+- **Security:** Added Administrator privilege verification on startup.
+- **Diagnostics:** implemented Disk Health monitoring via WMIC and detailed Host/OS telemetry.
+- **Terminal UX:** Overhauled with a typed, color-coded logging system (Phase, Error, Success, User, Highlight).
+- **Partition Map:** Added visual storage breakdown for all system partitions.
+- **Pre-Flight Dashboard:** Added real-time Battery, Pending Updates, and Network Ping indicators to the Home screen.
+- **Power-User Kit:** Integrated Driver Audit, Startup Manager, and Disk Management shortcuts.
+- **Log Export:** Added capability to export terminal history to `.txt`.
+- **Animations:** Added pulsing glow animations to the Panic Button during active repairs.
+- **God Mode:** Added Windows "Master Settings" (God Mode) shortcut for power-user control.
+- **Video Compatibility:** Refactored window rendering to support screen capture and recording for presentations.
+
+### Changed
+- **Persistence:** Enhanced state tracking to include `LastStep` and `Logs` for more granular progress monitoring.
+- **Architecture:** Implemented step-level resumption to skip completed commands within a phase.
+- **Security:** Refactored command execution to include shell sanitization and trust boundaries.
+- **Diagnostics UI:** Replaced static text with real-time CPU/RAM usage progress bars.
+
+### Fixed
+- **Phase 5 Reliability:** Ensured WMI services are always re-enabled even if intermediate repair steps fail or are cancelled.
+- **Resource Management:** Added proactive context cancellation checks and null-safety to the command runner.

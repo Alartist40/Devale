@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { EventsOn } from '../wailsjs/runtime/runtime.js';
-    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair, GetApplications, ExportLogs, OpenDiskManager } from '../wailsjs/go/main/App.js';
+    import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair, GetApplications, ExportLogs, OpenDiskManager, OpenGodMode } from '../wailsjs/go/main/App.js';
 
     let currentTab = 'Home';
     let logs: string[] = [];
@@ -22,6 +22,10 @@
     let appCategories: any[] = [];
 
     onMount(async () => {
+        EventsOn('telemetry:update', (data: any) => {
+            sysInfo = data;
+        });
+
         EventsOn('terminal:output', (line: string) => {
             logs = [...logs, line];
             setTimeout(() => {
@@ -258,6 +262,7 @@
                 <button class="tool-btn" on:click={() => RunCommand("taskmgr.exe")}>TASK_MGR</button>
                 <button class="tool-btn" on:click={() => RunCommand("SystemPropertiesProtection.exe")}>RESTORE_POINT</button>
                 <button class="tool-btn" on:click={OpenDiskManager}>DISK_MGMT</button>
+                <button class="tool-btn" on:click={OpenGodMode}>GOD_MODE</button>
                 <button class="tool-btn" on:click={() => RunCommand("powershell -Command \"Get-WmiObject Win32_PnPEntity | Where-Object { $_.ConfigManagerErrorCode -ne 0 } | Select-Object Name, Status\"")}>DRIVER_AUDIT</button>
                 <button class="tool-btn" on:click={() => RunCommand("powershell -Command \"Get-CimInstance Win32_StartupCommand | Select-Object Name, Command\"")}>STARTUP_MGR</button>
                 <button class="tool-btn" on:click={handleExport} style="background: var(--accent); color: white;">EXPORT_LOGS</button>

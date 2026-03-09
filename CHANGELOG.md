@@ -46,6 +46,8 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - **Power-User Kit:** Integrated Driver Audit, Startup Manager, and Disk Management shortcuts.
 - **Log Export:** Added capability to export terminal history to `.txt`.
 - **Animations:** Added pulsing glow animations to the Panic Button during active repairs.
+- **God Mode:** Added Windows "Master Settings" (God Mode) shortcut for power-user control.
+- **Video Compatibility:** Refactored window rendering to support screen capture and recording for presentations.
 
 ### Changed
 - **Persistence:** Enhanced state tracking to include `LastStep` and `Logs` for more granular progress monitoring.

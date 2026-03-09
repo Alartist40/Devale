@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 	"devale-v2/backend/runner"
 	"devale-v2/backend/sysinfo"
 	"devale-v2/backend/persistence"
+	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -64,8 +67,19 @@ func (a *App) GetApplications() ([]runner.AppCategory, error) {
 }
 
 func (a *App) telemetryLoop() {
-	// Send real-time usage data every 2 seconds
-	// For production, this should be ticker-based
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-a.ctx.Done():
+			return
+		case <-ticker.C:
+			info, err := sysinfo.GetSystemInfo()
+			if err == nil {
+				wailsRuntime.EventsEmit(a.ctx, "telemetry:update", info)
+			}
+		}
+	}
 }
 
 func (a *App) ExportLogs(logs []string) (string, error) {
@@ -74,6 +88,11 @@ func (a *App) ExportLogs(logs []string) (string, error) {
 
 func (a *App) OpenDiskManager() string {
 	a.runner.RunCommand("diskmgmt.msc")
+	return "Success"
+}
+
+func (a *App) OpenGodMode() string {
+	a.runner.RunCommand("explorer shell:::{ED7BA470-8E54-465E-825C-99712043E01C}")
 	return "Success"
 }
 

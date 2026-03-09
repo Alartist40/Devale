@@ -66,10 +66,9 @@ func GetSystemInfo() (*Info, error) {
 		diskInfo = fmt.Sprintf("%.2f GB total", float64(disk.TotalPhysicalBytes)/1024/1024/1024)
 	}
 
-	host, _ := ghw.Host()
-	osInfo := "Unknown"
-	if host != nil {
-		osInfo = fmt.Sprintf("%s %s", host.OS.Name, host.OS.Release)
+	osInfo := "Windows (Detected)"
+	if runtime.GOOS != "windows" {
+		osInfo = "Linux (Development)"
 	}
 
 	return &Info{

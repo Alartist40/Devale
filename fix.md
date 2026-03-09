@@ -23,6 +23,12 @@ The terminal now uses a color-coded log system. Users can visually distinguish b
 ### 6. Categorized, Scalable App Store
 The App Store is now fully data-driven. We expanded it with 10+ new tools, including Unreal Engine, Steam, Visual Studio, and Python, categorized logically.
 
+### 7. "God Mode" Master Settings
+Added a direct shortcut to the Windows Master Control Panel (God Mode), providing instant access to 200+ hidden system settings and administrative tools.
+
+### 8. Screen Capture Compatibility
+Refactored the window initialization in `main.go` to disable translucent/transparent effects that often interfere with screen recording software (OBS, Teams, etc.), ensuring the app can be easily presented in demos.
+
 ## Future Roadmap Recommendations
 
 ### 1. Real-time SMART Monitoring

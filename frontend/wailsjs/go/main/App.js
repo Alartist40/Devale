@@ -49,3 +49,7 @@ export function ExportLogs(arg1) {
 export function OpenDiskManager() {
   return window['go']['main']['App']['OpenDiskManager']();
 }
+
+export function OpenGodMode() {
+  return window['go']['main']['App']['OpenGodMode']();
+}

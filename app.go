@@ -24,6 +24,14 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	a.runner = runner.NewCommandRunner(ctx)
+
+	if !runner.IsAdmin() {
+		a.runner.Log("! ERROR: DevAle is NOT running with Administrator privileges.")
+		a.runner.Log("! Some system repair features may fail to execute correctly.")
+		a.runner.Log("! Please restart the application as Administrator.")
+	} else {
+		a.runner.Log(">>> Administrator privileges verified.")
+	}
 }
 
 // Greet returns a greeting for the given name

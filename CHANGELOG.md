@@ -36,11 +36,16 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 
 ### Added
 - **Mock Windows Environment:** Introduced `Commander` interface and `MockCommander` for simulating Windows system responses in testing/CI.
-- **Categorized App Store:** Transitioned to a data-driven `applications.json` with categories (Browsers, Developer Tools, Game Development, Utilities).
-- **Repair Resilience:** Implemented `defer` blocks in critical repair phases (WMI) to ensure system services are re-enabled if the app is interrupted.
+- **Categorized App Store:** Transitioned to a data-driven `applications.json` with categories (Browsers, Developer Tools, Gaming, Utilities) and expanded software list (Unreal, Steam, etc.).
+- **Safety Backups:** Integrated automatic Windows System Restore Point creation before starting repairs.
+- **Security:** Added Administrator privilege verification on startup.
+- **Diagnostics:** implemented real-time Disk Health monitoring via WMIC.
+- **Terminal UX:** Overhauled with a typed, color-coded logging system (Phase, Error, Success, User, Highlight).
 
 ### Changed
 - **Persistence:** Enhanced state tracking to include `LastStep` and `Logs` for more granular progress monitoring.
+- **Architecture:** Implemented step-level resumption to skip completed commands within a phase.
+- **Security:** Refactored command execution to include shell sanitization and trust boundaries.
 
 ### Fixed
 - **Phase 5 Reliability:** Ensured WMI services are always re-enabled even if intermediate repair steps fail or are cancelled.

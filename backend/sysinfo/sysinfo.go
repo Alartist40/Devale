@@ -2,6 +2,10 @@ package sysinfo
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
+	"strings"
+
 	"github.com/jaypipes/ghw"
 )
 
@@ -53,6 +57,27 @@ func GetSystemInfo() (*Info, error) {
 		Disk:       diskInfo,
 		OS:         osInfo,
 		Uptime:     "Check Task Manager",
-		DiskHealth: "Healthy (SMART OK)",
+		DiskHealth: getDiskHealth(),
 	}, nil
+}
+
+func getDiskHealth() string {
+	if runtime.GOOS != "windows" {
+		return "Healthy (Simulation)"
+	}
+
+	out, err := exec.Command("cmd", "/c", "wmic diskdrive get status").Output()
+	if err != nil {
+		return "Unknown (WMIC Error)"
+	}
+
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed != "" && trimmed != "Status" {
+			return fmt.Sprintf("Health: %s", trimmed)
+		}
+	}
+
+	return "Unknown"
 }

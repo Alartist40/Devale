@@ -1,4 +1,4 @@
-# Final Fixes and Architectural Recommendations
+# Final Fixes and Architectural Recommendations (Updated)
 
 ## Implemented Improvements
 
@@ -9,24 +9,27 @@ The repair engine now tracks individual steps within a phase. If a repair is int
 We implemented a "Trust Boundary" in `runner.go`.
 - **Untrusted Zone:** Terminal inputs from the user are sanitized.
 - **Trusted Zone:** Internal commands (Phase 1-6) are allowed full shell access.
-This prevents malicious actors from using DevAle's Admin privileges to compromise the system.
+- **Privilege Verification:** The app now detects if it is NOT running as Admin and warns the user.
 
-### 3. Professional Terminal UX
+### 3. Integrated Safety Backups
+Before Phase 1 (DISM), the app now automatically creates a System Restore Point using `Checkpoint-Computer`. This provides a critical safety net for users.
+
+### 4. Real System Diagnostics
+We moved away from static hardware placeholders. The app now uses `wmic` to pull real-time Disk Health and `ghw` for detailed Host/OS info.
+
+### 5. Professional Terminal UX
 The terminal now uses a color-coded log system. Users can visually distinguish between informational logs (green/white), phase headers (orange), and critical errors (red).
 
-### 4. Categorized, Scalable App Store
-The App Store is now fully data-driven. Adding new apps or categories no longer requires recompiling the frontend; simply update `applications.json`.
+### 6. Categorized, Scalable App Store
+The App Store is now fully data-driven. We expanded it with 10+ new tools, including Unreal Engine, Steam, Visual Studio, and Python, categorized logically.
 
 ## Future Roadmap Recommendations
 
 ### 1. Real-time SMART Monitoring
-While we added a Disk Health status, a future version should use `wmic diskdrive get status` or a dedicated Go library to pull actual SMART attributes (Temperature, Reallocated Sectors) for pro-active failure warnings.
+While we added a Disk Health status, a future version should use a dedicated Go library to pull actual SMART attributes (Temperature, Reallocated Sectors) for pro-active failure warnings.
 
 ### 2. Winget Batching
 Currently, Winget installs apps one by one. Implementing a "Queue" or "Select All" feature in the App Store would improve efficiency for setting up new PCs.
 
-### 3. Integrated Backup
-Before Phase 1 (DISM), the app could automatically create a System Restore Point using `powershell Checkpoint-Computer`.
-
-### 4. Remote Support Integration
+### 3. Remote Support Integration
 Adding a button to launch a lightweight VNC or Quick Assist tool would make DevAle a complete 1-stop-shop for I.T. support.

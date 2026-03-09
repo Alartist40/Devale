@@ -150,6 +150,18 @@ func (r *CommandRunner) StopCommand() {
 }
 
 func (r *CommandRunner) RunRepairPhase(phase int) error {
+	// SAFETY: Create Restore Point before Phase 1
+	if phase == 1 {
+		r.Log("--- SAFETY: Creating System Restore Point ---")
+		r.Log(">>> This ensures you can revert changes if needed...")
+		err := r.runCommandInternal("powershell -Command \"Checkpoint-Computer -Description 'DevAle System Repair' -RestorePointType 'MODIFY_SETTINGS'\"", true)
+		if err != nil {
+			r.Log("! Warning: Could not create restore point. Continuing anyway...")
+		} else {
+			r.Log("SUCCESS: Restore Point created.")
+		}
+	}
+
 	select {
 	case <-r.ctx.Done():
 		return fmt.Errorf("operation cancelled")
@@ -297,8 +309,20 @@ func (r *CommandRunner) ScheduleResume() error {
 	if err != nil {
 		exe = "devale-v2.exe"
 	}
+	// Schedule the task
 	cmd := fmt.Sprintf("schtasks /create /tn \"DevAleResume\" /tr \"\\\"%s\\\"\" /sc onlogon /rl highest /f", exe)
-	return r.runCommandInternal(cmd, true)
+	err = r.runCommandInternal(cmd, true)
+	if err != nil {
+		return err
+	}
+
+	// Double check if the task actually exists
+	checkCmd := "schtasks /query /tn \"DevAleResume\""
+	if err := r.runCommandInternal(checkCmd, true); err != nil {
+		return fmt.Errorf("task was scheduled but verification failed: %w", err)
+	}
+
+	return nil
 }
 
 func (r *CommandRunner) ClearResume() error {

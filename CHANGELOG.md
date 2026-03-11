@@ -58,3 +58,8 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 ### Fixed
 - **Phase 5 Reliability:** Ensured WMI services are always re-enabled even if intermediate repair steps fail or are cancelled.
 - **Resource Management:** Added proactive context cancellation checks and null-safety to the command runner.
+
+## [2.1.1] - Maintenance
+
+### Changed
+- **Build:** Rebuilt the production Windows executable (`DevAle_v2.exe`) to include all recent code updates and UI refinements.

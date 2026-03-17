@@ -35,8 +35,10 @@
         });
 
         try {
-            sysInfo = await GetSystemInfo();
-            appCategories = await GetApplications();
+            const info = await GetSystemInfo();
+            if (info) sysInfo = info;
+            const apps = await GetApplications();
+            if (apps) appCategories = apps;
             const lastPhase = await LoadState();
             if (lastPhase > 0) {
                 currentTab = 'Home';
@@ -74,7 +76,7 @@
                 await SaveState(i);
 
                 if (i === 2) {
-                    logs = [...logs, "!!! PHASE 2 REQUIRES RESTART !!!"];
+                    logs = [...logs, { text: "!!! PHASE 2 REQUIRES RESTART !!!", type: 'highlight' }];
                     const phase2Result = await RunRepairPhase(2);
                     if (phase2Result.startsWith("Error:")) {
                         throw new Error(`Phase 2 failed: ${phase2Result}`);
@@ -83,8 +85,9 @@
                     if (scheduleResult.startsWith("Error:")) {
                         throw new Error(`Resume scheduling failed: ${scheduleResult}`);
                     }
-                    logs = [...logs, "System will restart in 10 seconds. Auto-resume scheduled."];
+                    logs = [...logs, { text: "System will restart in 10 seconds. Auto-resume scheduled.", type: 'highlight' }];
                     await RunCommand("shutdown /r /t 10 /c \"DevAle System Repair - Restarting for CHKDSK\"");
+                    isRepairing = false;
                     return;
                 }
 
@@ -124,6 +127,9 @@
         if (!isRepairing) return;
         await StopRepair();
         logs = [...logs, { text: ">>> STOP REQUEST SENT", type: 'highlight' }];
+        // Optimistically set isRepairing to false to stop animations,
+        // though the backend might take a moment to actually stop.
+        isRepairing = false;
     }
 
     async function handleExport() {

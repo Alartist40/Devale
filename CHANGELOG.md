@@ -61,3 +61,19 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 - **Bug Fix:** Fixed a critical issue where the "Panic Button" would remain in a "Repairing" state after a manual stop or Phase 2 restart trigger.
 - **Bug Fix:** Resolved a state persistence issue where repair progress was not correctly saved for Phases 2, 3, 4, and 6.
 - **Bug Fix:** Implemented deep cancellation checks across all repair phases to ensure processes terminate immediately when requested by the user.
+
+## [2.2.0] - Production Build & Branding Update
+
+### Added
+- **Minimalist Branding:** Replaced "Cynapse" logo with a clean, minimalist version optimized for I.T. professional use.
+- **Production Build:** Generated the official `DevAle_v2.exe` Windows binary in the root directory.
+- **Improved Success Logging:** Added explicit "SUCCESS" and "DONE" messages for manual tools like DNS Flush and App Store installs.
+- **Silent Winget Installs:** Updated Winget commands with `--accept-source-agreements --accept-package-agreements` to bypass interactive prompts in the integrated terminal.
+
+### Changed
+- **Asset Pipeline:** Refactored Svelte logo implementation to use Vite asset imports, ensuring correct bundling in the production EXE.
+- **UI Styling:** Adjusted Dark Mode terminal background (`#1e1e1e`) and added a subtle border/shadow for improved visibility.
+
+### Fixed
+- **Window Flashing:** Refactored background command execution to hide console pop-ups globally using a shared `utils` package.
+- **Terminal Encoding:** Implemented advanced filtering for Winget/Progress bar characters (`Ôûê`) to prevent "garbled" text in the UTF-8 frontend.

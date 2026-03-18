@@ -288,7 +288,7 @@
                     {#each category.apps as app}
                         <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: bold; margin-left: 15px;">{app.name}</span>
-                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id}`)}>INSTALL</button>
+                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id} --accept-source-agreements --accept-package-agreements`)}>INSTALL</button>
                         </div>
                     {/each}
                 </div>

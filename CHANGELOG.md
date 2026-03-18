@@ -58,3 +58,6 @@ All notable changes to the DevAle project during the Go rewrite are documented h
 ### Fixed
 - **Phase 5 Reliability:** Ensured WMI services are always re-enabled even if intermediate repair steps fail or are cancelled.
 - **Resource Management:** Added proactive context cancellation checks and null-safety to the command runner.
+- **Bug Fix:** Fixed a critical issue where the "Panic Button" would remain in a "Repairing" state after a manual stop or Phase 2 restart trigger.
+- **Bug Fix:** Resolved a state persistence issue where repair progress was not correctly saved for Phases 2, 3, 4, and 6.
+- **Bug Fix:** Implemented deep cancellation checks across all repair phases to ensure processes terminate immediately when requested by the user.

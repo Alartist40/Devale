@@ -26,6 +26,7 @@ type Step struct {
 
 type CommandRunner struct {
 	ctx        context.Context
+	cancelMain context.CancelFunc
 	mu         sync.Mutex
 	cancelMu   sync.Mutex
 	cancelFunc context.CancelFunc
@@ -33,9 +34,11 @@ type CommandRunner struct {
 }
 
 func NewCommandRunner(ctx context.Context) *CommandRunner {
+	subCtx, cancel := context.WithCancel(ctx)
 	return &CommandRunner{
-		ctx:       ctx,
-		commander: &RealCommander{},
+		ctx:        subCtx,
+		cancelMain: cancel,
+		commander:  &RealCommander{},
 	}
 }
 
@@ -57,12 +60,19 @@ func (r *CommandRunner) runCommandInternal(cmdStr string, allowShell bool) error
 	// RESOURCE OPTIMIZATION: Check if the main application context is already cancelled
 	select {
 	case <-r.ctx.Done():
-		return r.ctx.Err()
+		return fmt.Errorf("command cancelled: %w", r.ctx.Err())
 	default:
 	}
 
 	// Create a sub-context for this command
 	cmdCtx, cancel := context.WithCancel(r.ctx)
+
+	// Double check r.ctx wasn't just cancelled
+	if r.ctx.Err() != nil {
+		cancel()
+		return r.ctx.Err()
+	}
+
 	r.cancelMu.Lock()
 	r.cancelFunc = cancel
 	r.cancelMu.Unlock()
@@ -144,11 +154,13 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 
 func (r *CommandRunner) StopCommand() {
 	r.cancelMu.Lock()
-	defer r.cancelMu.Unlock()
 	if r.cancelFunc != nil {
 		r.cancelFunc()
-		r.Log("!!! PROCESS MANUALLY INTERRUPTED BY USER !!!")
 	}
+	r.cancelMu.Unlock()
+
+	r.cancelMain()
+	r.Log("!!! PROCESS MANUALLY INTERRUPTED BY USER !!!")
 }
 
 func (r *CommandRunner) RunRepairPhase(phase int) error {
@@ -203,6 +215,14 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 				}
 				continue
 			}
+
+			// Check if we were cancelled BEFORE starting a new step
+			select {
+			case <-r.ctx.Done():
+				return fmt.Errorf("phase 1 interrupted: %w", r.ctx.Err())
+			default:
+			}
+
 			updateLastStep(s)
 			if err := r.runCommandInternal(s, true); err != nil {
 				return fmt.Errorf("phase 1 step failed (%s): %w", s, err)
@@ -210,24 +230,56 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 		}
 	case 2: // CHKDSK
 		r.Log("--- PHASE 2: Scheduling CHKDSK ---")
+
+		// Check for cancellation
+		select {
+		case <-r.ctx.Done():
+			return fmt.Errorf("phase 2 interrupted: %w", r.ctx.Err())
+		default:
+		}
+
 		err := r.runCommandInternal("echo Y | chkdsk C: /f", true)
 		if err != nil {
 			// Exit status 3 is common when chkdsk schedules successfully but cannot lock the drive
 			if strings.Contains(err.Error(), "exit status 3") {
 				r.Log(">>> CHKDSK scheduled successfully (status 3).")
+				updateLastStep("echo Y | chkdsk C: /f")
 				return nil
 			}
 			return err
 		}
+		updateLastStep("echo Y | chkdsk C: /f")
 		return nil
 	case 3: // SFC
 		r.Log("--- PHASE 3: SFC Scan ---")
 		r.Log(">>> Beginning system scan. This will take 10-15 minutes...")
-		return r.runCommandInternal("sfc /scannow", true)
+
+		select {
+		case <-r.ctx.Done():
+			return fmt.Errorf("phase 3 interrupted: %w", r.ctx.Err())
+		default:
+		}
+
+		err := r.runCommandInternal("sfc /scannow", true)
+		if err == nil {
+			updateLastStep("sfc /scannow")
+		}
+		return err
 	case 4: // Component Cleanup
 		r.Log("--- PHASE 4: Component Store Cleanup ---")
 		r.Log(">>> Cleaning up component store. This will take several minutes...")
-		return r.runCommandInternal("dism /online /cleanup-image /startcomponentcleanup /resetbase", true)
+
+		select {
+		case <-r.ctx.Done():
+			return fmt.Errorf("phase 4 interrupted: %w", r.ctx.Err())
+		default:
+		}
+
+		err := r.runCommandInternal("dism /online /cleanup-image /startcomponentcleanup /resetbase", true)
+		if err == nil {
+			updateLastStep("dism /online /cleanup-image /startcomponentcleanup /resetbase")
+		}
+		return err
 	case 5: // WMI
 		r.Log("--- PHASE 5: WMI Repair ---")
 		r.Log(">>> Stopping WMI services and re-registering core libraries...")
@@ -265,23 +317,39 @@ func (r *CommandRunner) RunRepairPhase(phase int) error {
 				r.Log(fmt.Sprintf(">>> Skipping completed step: %s", s))
 				continue
 			}
+
+			// Check if we were cancelled BEFORE starting a new step
+			select {
+			case <-r.ctx.Done():
+				return fmt.Errorf("WMI phase interrupted: %w", r.ctx.Err())
+			default:
+			}
+
 			updateLastStep(s)
 			r.Log(fmt.Sprintf("> %s", s))
 			if err := r.runCommandInternal(s, true); err != nil {
+				// If the context was cancelled, we MUST stop immediately
+				if ctxErr := r.ctx.Err(); ctxErr != nil {
+					return fmt.Errorf("WMI phase interrupted: %w", ctxErr)
+				}
 				// WMI repairs can be finicky; log error but try to continue for certain steps
 				r.Log(fmt.Sprintf("! Warning: %s failed: %v", s, err))
-			}
-
-			// Check if we were cancelled
-			select {
-			case <-r.ctx.Done():
-				return fmt.Errorf("WMI phase interrupted")
-			default:
 			}
 		}
 	case 6: // AppX
 		r.Log("--- PHASE 6: AppX Re-registration ---")
-		return r.runCommandInternal("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\" -ErrorAction SilentlyContinue }\"", true)
+
+		select {
+		case <-r.ctx.Done():
+			return fmt.Errorf("phase 6 interrupted: %w", r.ctx.Err())
+		default:
+		}
+
+		err := r.runCommandInternal("powershell -ExecutionPolicy Bypass -Command \"Get-AppXPackage -AllUsers | ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register \\\"$($_.InstallLocation)\\AppXManifest.xml\\\" -ErrorAction SilentlyContinue }\"", true)
+		if err == nil {
+			updateLastStep("Get-AppXPackage")
+		}
+		return err
 	default:
 		return fmt.Errorf("invalid repair phase: %d", phase)
 	}
@@ -298,14 +366,20 @@ func (r *CommandRunner) Log(msg string) {
 		return
 	}
 
-	// Check for our custom test key
-	if val := r.ctx.Value(isTestKey); val != nil && val.(bool) {
+	// Check for our custom test key or context type
+	val := r.ctx.Value(isTestKey)
+	if val != nil && val.(bool) {
 		fmt.Printf("[LOG] %s\n", msg)
 		return
 	}
 
-	// Safely attempt to emit, but don't crash
-	defer func() { recover() }()
+	// Safely attempt to emit, but don't crash.
+	// Wails EventsEmit will panic if it's not a Wails context.
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Printf("[LOG-FALLBACK] %s\n", msg)
+		}
+	}()
 	wailsRuntime.EventsEmit(r.ctx, "terminal:output", msg)
 }
 

@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"devale-v2/backend/persistence"
 	"errors"
 	"fmt"
 	"strings"
@@ -22,6 +23,9 @@ func TestRepairPhases_FullSuite(t *testing.T) {
 	}
 	runner := NewCommandRunner(ctx)
 	runner.SetCommander(mock)
+
+	// Initialize state to avoid nil issues if any
+	persistence.SaveState(persistence.State{})
 
 	for phase := 1; phase <= 6; phase++ {
 		t.Run(fmt.Sprintf("Phase %d", phase), func(t *testing.T) {

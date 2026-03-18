@@ -46,6 +46,8 @@ wails build -platform windows/amd64
 ```
 The output binary will be located in `build/bin/devale-v2.exe`.
 
+**Note for Developers:** This build includes the latest fixes for command cancellation and UI state persistence.
+
 ## 📂 Project Structure
 - `main.go`: Application entry point and Wails configuration.
 - `app.go`: Go-to-Frontend bindings and business logic.

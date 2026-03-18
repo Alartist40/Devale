@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 )
 
 // Commander interface allows us to mock execution
@@ -18,6 +19,7 @@ type RealCommander struct{}
 // MockCommander simulates Windows responses
 type MockCommander struct {
 	Responses map[string]MockResponse
+	Delay     map[string]time.Duration
 	History   []string
 }
 
@@ -28,6 +30,17 @@ type MockResponse struct {
 
 func (c *MockCommander) Run(ctx context.Context, cmdStr string, stdout, stderr io.Writer) error {
 	c.History = append(c.History, cmdStr)
+
+	// Simulate delay
+	for pattern, delay := range c.Delay {
+		if strings.Contains(cmdStr, pattern) {
+			select {
+			case <-time.After(delay):
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+	}
 
 	for pattern, resp := range c.Responses {
 		if strings.Contains(cmdStr, pattern) {

@@ -44,9 +44,9 @@ To build a standalone Windows executable:
 ```bash
 wails build -platform windows/amd64
 ```
-The output binary will be located in `build/bin/devale-v2.exe`.
+The output binary will be located in `build/bin/DevAle_v2.exe`.
 
-**Note for Developers:** This build includes the latest fixes for command cancellation and UI state persistence.
+**Note for Professionals:** The official production build is located in the root directory as `DevAle_v2.exe`. This version includes minimalist branding, silent Winget installations, and optimized terminal encoding.
 
 ## 📂 Project Structure
 - `main.go`: Application entry point and Wails configuration.

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"devale-v2/backend/persistence"
+	"devale-v2/backend/utils"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -50,7 +51,17 @@ func (r *CommandRunner) SetCommander(c Commander) {
 }
 
 func (r *CommandRunner) RunCommand(cmdStr string) error {
-	return r.runCommandInternal(cmdStr, false)
+	err := r.runCommandInternal(cmdStr, false)
+	if err == nil {
+		if strings.Contains(cmdStr, "ipconfig /flushdns") {
+			r.Log(">>> SUCCESS: DNS Resolver Cache Flushed.")
+		} else if strings.Contains(cmdStr, "winget install") {
+			r.Log(">>> SUCCESS: Installation complete.")
+		} else if !strings.Contains(cmdStr, "schtasks") { // Avoid spamming internal tasks
+			r.Log(">>> DONE.")
+		}
+	}
+	return err
 }
 
 func (r *CommandRunner) runCommandInternal(cmdStr string, allowShell bool) error {
@@ -95,7 +106,7 @@ func (c *RealCommander) Run(ctx context.Context, cmdStr string, stdout, stderr i
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.CommandContext(ctx, "cmd", "/c", cmdStr)
-		setHideWindow(cmd)
+		utils.SetHideWindow(cmd)
 	} else {
 		cmd = exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	}
@@ -133,7 +144,22 @@ func (r *CommandRunner) streamOutput(reader io.ReadCloser) {
 			continue
 		}
 
-		// FILTERING FOR CLEANER UI (No glitching/scrolling noise)
+		// FILTERING FOR WINGET PROGRESS BARS (No glitching/scrolling noise)
+		if strings.Contains(line, "Ôûê") || strings.Contains(line, "ÔûÆ") || strings.Contains(line, "KB /") || strings.Contains(line, "MB /") {
+			// Extract and log percentage for Winget if present
+			if strings.Contains(line, "%") {
+				parts := strings.Split(line, " ")
+				for _, p := range parts {
+					if strings.HasSuffix(p, "%") {
+						r.Log(fmt.Sprintf("Progress: %s", p))
+						break
+					}
+				}
+			}
+			continue
+		}
+
+		// FILTERING FOR CLEANER UI
 		// Skip verbose per-file logs for common long-running operations
 		if strings.Contains(line, "regsvr32 /s") ||
 			strings.Contains(line, "mofcomp ") ||

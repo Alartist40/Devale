@@ -1,6 +1,7 @@
 package sysinfo
 
 import (
+	"devale-v2/backend/utils"
 	"fmt"
 	"os/exec"
 	"runtime"
@@ -108,7 +109,10 @@ func getDiskHealth() string {
 		return "Healthy (Simulation)"
 	}
 
-	out, err := exec.Command("cmd", "/c", "wmic diskdrive get status").Output()
+	cmd := exec.Command("cmd", "/c", "wmic diskdrive get status")
+	utils.SetHideWindow(cmd)
+
+	out, err := cmd.Output()
 	if err != nil {
 		return "Unknown (WMIC Error)"
 	}

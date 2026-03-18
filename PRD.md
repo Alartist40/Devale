@@ -50,6 +50,7 @@ DevAle v2 is a total rewrite of the original Python-based DevAle system utility.
 - Real-time output streaming for all automated actions.
 
 ## 5. UI/UX Requirements
-- **Theme:** Light/Dark mode, Neumorphic "Soft UI" aesthetic.
+- **Theme:** Light/Dark mode, Neumorphic "Soft UI" aesthetic with a minimalist branding approach (no "Cynapse" text).
 - **Animations:** Pulsing "Panic" glow during active repairs.
 - **Accessibility:** ARIA labels, clear visual feedback for active states.
+- **Terminal:** Robust CP850-to-UTF8 encoding to prevent garbled text in the integrated console.

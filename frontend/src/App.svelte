@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import logo from './assets/images/logo-universal.png';
     import { EventsOn } from '../wailsjs/runtime/runtime.js';
     import { RunCommand, GetSystemInfo, RunRepairPhase, ScheduleResume, ClearResume, SaveState, LoadState, StopRepair, GetApplications, ExportLogs, OpenDiskManager, OpenGodMode } from '../wailsjs/go/main/App.js';
 
@@ -147,7 +148,10 @@
 </div>
 
 <div class="sidebar">
-    <div style="padding: 0 20px 30px; font-size: 26px; font-weight: 900; color: var(--accent); text-align: center;">DEVALE</div>
+    <div style="padding: 10px 20px 20px; text-align: center;">
+        <img src={logo} alt="DevAle Logo" style="width: 80px; height: 80px; object-fit: contain; margin-bottom: 10px; filter: drop-shadow(2px 2px 4px var(--shadow-dark));">
+        <div style="font-size: 24px; font-weight: 900; color: var(--accent);">DEVALE</div>
+    </div>
 
     <div role="button" tabindex="0" class="nav-item {currentTab === 'Home' ? 'active' : ''}" on:click={() => currentTab = 'Home'} on:keydown={(e) => e.key === 'Enter' && (currentTab = 'Home')}>HOME</div>
     <div role="button" tabindex="0" class="nav-item {currentTab === 'Diagnose' ? 'active' : ''}" on:click={() => currentTab = 'Diagnose'} on:keydown={(e) => e.key === 'Enter' && (currentTab = 'Diagnose')}>DIAGNOSE</div>
@@ -284,7 +288,7 @@
                     {#each category.apps as app}
                         <div class="app-item" style="padding: 15px; background: var(--bg-main); border-radius: 50px; box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light); display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-weight: bold; margin-left: 15px;">{app.name}</span>
-                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id}`)}>INSTALL</button>
+                            <button class="tool-btn" style="padding: 8px 15px; font-size: 11px; margin: 0; min-width: 80px;" on:click={() => RunCommand(`winget install ${app.id} --accept-source-agreements --accept-package-agreements`)}>INSTALL</button>
                         </div>
                     {/each}
                 </div>
